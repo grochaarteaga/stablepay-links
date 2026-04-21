@@ -1,40 +1,62 @@
 // src/app/page.tsx
-import Link from "next/link";
+// Marketing landing page. Composed of section components under
+// src/components/marketing/. Each section is its own file for isolated edits.
+
+import Nav from "@/components/marketing/Nav";
+import Hero from "@/components/marketing/Hero";
+import Footer from "@/components/marketing/Footer";
 
 export default function Home() {
   return (
-    <main className="min-h-screen flex items-center justify-center bg-slate-950 text-slate-50">
-      <div className="max-w-xl w-full px-6 py-8 rounded-2xl border border-slate-800 bg-slate-900">
-        <h1 className="text-2xl md:text-3xl font-semibold mb-4">
-          Stablecoin B2B Payment Links MVP
-        </h1>
-        <p className="text-sm md:text-base text-slate-300 mb-4">
-          Chunk 1 is alive 🎉
-        </p>
-        <p className="text-sm text-slate-400 mb-6">
-          Next.js + TypeScript + Tailwind + Supabase client have been set up.
-          In the next chunks, we&apos;ll add authentication, invoice creation,
-          per-invoice wallets on Base, and Alchemy webhooks.
-        </p>
+    <>
+      <Nav />
+      <main>
+        <Hero />
 
-        <div className="space-y-2 text-sm text-slate-300">
-          <p>Current stack:</p>
-          <ul className="list-disc list-inside text-slate-300">
-            <li>Next.js (App Router, TypeScript)</li>
-            <li>Supabase client configured via env vars</li>
-            <li>Tailwind CSS for fast UI</li>
-          </ul>
-        </div>
+        {/* TODO: LogoStrip — Section 3
+            Label: "Built on enterprise-grade rails"
+            Logos: Bridge · Coinbase · Base · Circle · Privy
+            File: src/components/marketing/LogoStrip.tsx */}
 
-        <div className="mt-6">
-          <Link
-            href="/dashboard"
-            className="inline-flex items-center justify-center rounded-lg px-4 py-2 text-sm font-medium border border-slate-600 hover:border-slate-400 transition"
-          >
-            Dashboard (coming soon)
-          </Link>
-        </div>
-      </div>
-    </main>
+        {/* TODO: ProblemStats — Section 4
+            Headline: "The maritime industry still moves money like it's 1995."
+            Stats: 3–15 days / $30–50 / 0 visibility
+            File: src/components/marketing/ProblemStats.tsx */}
+
+        {/* TODO: HowItWorks — Section 5
+            4-step horizontal flow: invoice → send → pay → reconcile
+            File: src/components/marketing/HowItWorks.tsx */}
+
+        {/* TODO: ForPortAgents — Section 6
+            Headline: "Stop being your customer's bank."
+            Two-column with mock UI
+            File: src/components/marketing/ForPortAgents.tsx */}
+
+        {/* TODO: ForShippingCompanies — Section 7
+            Headline: "One way to pay every port, everywhere."
+            File: src/components/marketing/ForShippingCompanies.tsx */}
+
+        {/* TODO: InfrastructureTrust — Section 8
+            Four trust cards (regulated partners, KYC/KYB, 1:1 USD, audit trail)
+            File: src/components/marketing/InfrastructureTrust.tsx */}
+
+        {/* TODO: SocialProof — Section 9
+            Currently: onboarding message. Later: testimonials.
+            File: src/components/marketing/SocialProof.tsx */}
+
+        {/* TODO: PricingTeaser — Section 10
+            "Priced for operations, not for banks."
+            File: src/components/marketing/PricingTeaser.tsx */}
+
+        {/* TODO: FAQ — Section 11
+            6–8 accordion items. Never say "crypto" in answers.
+            File: src/components/marketing/FAQ.tsx */}
+
+        {/* TODO: FinalCTA — Section 12
+            "Get paid faster. Starting today."
+            File: src/components/marketing/FinalCTA.tsx */}
+      </main>
+      <Footer />
+    </>
   );
 }
