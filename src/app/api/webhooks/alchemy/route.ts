@@ -147,7 +147,9 @@ export async function POST(req: Request) {
         continue;
       }
 
-      // Write credit entry to ledger
+      // Write credit entry to ledger.
+      // idempotency_key prevents a double credit if Alchemy replays the
+      // webhook (the tx_hash unique index is a second independent guard).
       const { error: ledgerError } = await supabaseAdmin
         .from("ledger_entries")
         .insert({
@@ -157,10 +159,20 @@ export async function POST(req: Request) {
           amount: invoice.amount,
           tx_hash: txHash || null,
           description: `Payment received for invoice ${invoice.id}`,
+          idempotency_key: `invoice:${invoice.id}:payment`,
+          metadata: {
+            invoice_id: invoice.id,
+            tx_hash: txHash ?? null,
+          },
         });
 
       if (ledgerError) {
-        console.error("DB error writing ledger entry:", ledgerError.message);
+        if (ledgerError.code === "23505") {
+          // unique_violation: entry already exists — idempotent, safe to ignore
+          console.log(`Ledger entry already exists for invoice ${invoice.id} — skipping duplicate`);
+        } else {
+          console.error("DB error writing ledger entry:", ledgerError.message);
+        }
       }
 
       console.log("Invoice marked as PAID:", invoice.id, "tx:", txHash);

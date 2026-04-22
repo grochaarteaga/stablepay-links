@@ -40,3 +40,17 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Claude Code project memory
+.claude/
+
+# Internal documents — do not commit
+*.pdf
+*.pptx
+*.zip
+PR-*.md
+LANDING-*.md
+EUR-*.md
+HANDOFF.md
+portpagos-lovable-prompt.md
+docs/

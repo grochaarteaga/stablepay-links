@@ -18,7 +18,7 @@ export async function GET(
   const { data, error } = await supabaseAdmin
     .from("invoices")
     .select(
-      "id, amount, currency, customer, description, status, invoice_wallet_address, created_at"
+      "id, amount, currency, customer, description, status, invoice_wallet_address, created_at, merchant_id"
     )
     .eq("id", invoiceId)
     .maybeSingle();
@@ -38,5 +38,17 @@ export async function GET(
     );
   }
 
-  return NextResponse.json({ invoice: data });
+  const { data: profile } = await supabaseAdmin
+    .from("profiles")
+    .select("company_name")
+    .eq("user_id", data.merchant_id)
+    .maybeSingle();
+
+  const { merchant_id: _, ...invoiceWithoutMerchantId } = data;
+  return NextResponse.json({
+    invoice: {
+      ...invoiceWithoutMerchantId,
+      merchant_name: profile?.company_name ?? null,
+    },
+  });
 }

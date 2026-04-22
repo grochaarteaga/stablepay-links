@@ -20,5 +20,10 @@ declare namespace NodeJS {
     // Web3 / WalletConnect (public)
     NEXT_PUBLIC_WALLETCONNECT_PROJECT_ID: string;
     NEXT_PUBLIC_USDC_CONTRACT_ADDRESS: string;
+
+    // Bridge (fiat-to-crypto partner, server-only)
+    BRIDGE_API_KEY: string;
+    BRIDGE_API_URL: string;
+    BRIDGE_WEBHOOK_SECRET: string;
   }
 }

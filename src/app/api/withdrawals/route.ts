@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getPrivyClient } from "@/lib/privy";
 import { ensureGasBalance } from "@/lib/gasFunder";
 import { encodeFunctionData, getAddress, isAddress } from "viem";
+import crypto from "crypto";
 
 // Inline ABI as const so viem can infer argument types correctly
 const USDC_TRANSFER_ABI = [
@@ -65,19 +66,18 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid destination address." }, { status: 400 });
   }
 
-  // Calculate current available balance from ledger
-  const { data: ledgerEntries, error: ledgerFetchError } = await supabaseAdmin
-    .from("ledger_entries")
-    .select("type, amount")
-    .eq("merchant_id", user.id);
+  // Read current balance from the materialised balances table (O(1))
+  const { data: balanceRow, error: balanceFetchError } = await supabaseAdmin
+    .from("balances")
+    .select("amount")
+    .eq("merchant_id", user.id)
+    .maybeSingle();
 
-  if (ledgerFetchError) {
+  if (balanceFetchError) {
     return NextResponse.json({ error: "Failed to fetch balance." }, { status: 500 });
   }
 
-  const currentBalance = (ledgerEntries ?? []).reduce((sum: number, e: { type: string; amount: number }) => {
-    return sum + (e.type === "credit" ? e.amount : -e.amount);
-  }, 0);
+  const currentBalance = Number(balanceRow?.amount ?? 0);
 
   // Round to 6 decimal places to avoid floating-point comparison issues
   const balanceRounded = Math.round(currentBalance * 1_000_000) / 1_000_000;
@@ -120,6 +120,10 @@ export async function POST(req: Request) {
 
   const shortDest = `${payoutWallet.address.slice(0, 6)}...${payoutWallet.address.slice(-4)}`;
 
+  // Groups the debit and its potential reversal credit under one ID
+  // so the full lifecycle of this withdrawal can be audited together.
+  const ledgerTxId = crypto.randomUUID();
+
   // 2. Write debit ledger entry immediately — this reserves the funds
   //    and ensures the balance is accurate even if execution fails
   const { error: debitError } = await supabaseAdmin.from("ledger_entries").insert({
@@ -127,6 +131,13 @@ export async function POST(req: Request) {
     type: "debit",
     amount: parsedAmount,
     description: `Withdrawal to ${payoutWallet.wallet_name} (${shortDest})`,
+    idempotency_key: `withdrawal:${withdrawal.id}:debit`,
+    ledger_transaction_id: ledgerTxId,
+    metadata: {
+      withdrawal_id: withdrawal.id,
+      destination_address: payoutWallet.address,
+      wallet_name: payoutWallet.wallet_name,
+    },
   });
 
   if (debitError) {
@@ -207,13 +218,27 @@ export async function POST(req: Request) {
       })
       .eq("id", withdrawal.id);
 
-    // Reverse the debit: write a credit entry to restore the balance
-    await supabaseAdmin.from("ledger_entries").insert({
+    // Reverse the debit: write a credit entry to restore the balance.
+    // Same ledger_transaction_id links this back to the original debit.
+    // idempotency_key prevents a double-reversal if this catch block
+    // somehow runs twice (e.g. retry on network timeout).
+    const { error: reversalError } = await supabaseAdmin.from("ledger_entries").insert({
       merchant_id: user.id,
       type: "credit",
       amount: parsedAmount,
       description: `Reversal: withdrawal failed — funds returned to balance`,
+      idempotency_key: `withdrawal:${withdrawal.id}:reversal`,
+      ledger_transaction_id: ledgerTxId,
+      metadata: {
+        withdrawal_id: withdrawal.id,
+        reason: "transfer_failed",
+        error: message,
+      },
     });
+    if (reversalError && reversalError.code !== "23505") {
+      // 23505 = unique_violation: reversal already exists — safe to ignore
+      console.error("Failed to write reversal ledger entry:", reversalError.message);
+    }
 
     return NextResponse.json(
       {
