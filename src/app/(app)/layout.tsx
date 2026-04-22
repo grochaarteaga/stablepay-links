@@ -1,6 +1,6 @@
 import { ReactNode } from "react";
-import { Web3Provider } from "@/components/Web3Provider";
+import { ClientWeb3Provider } from "@/components/ClientWeb3Provider";
 
 export default function AppLayout({ children }: { children: ReactNode }) {
-  return <Web3Provider>{children}</Web3Provider>;
+  return <ClientWeb3Provider>{children}</ClientWeb3Provider>;
 }
