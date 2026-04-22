@@ -391,6 +391,7 @@ export default function PayInvoicePage() {
               {/* Connect wallet */}
               <div>
                 <p className="text-xs font-medium text-slate-400 mb-3">Connect your wallet</p>
+                {/* @ts-expect-error w3m-button is a WalletConnect web component */}
                 <w3m-button />
                 {isConnected && connectedAddress && (
                   <p className="text-xs text-green-400 mt-2.5 flex items-center gap-1.5">
