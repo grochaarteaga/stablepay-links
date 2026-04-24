@@ -25,5 +25,11 @@ declare namespace NodeJS {
     BRIDGE_API_KEY: string;
     BRIDGE_API_URL: string;
     BRIDGE_WEBHOOK_SECRET: string;
+
+    // Gas funder (server-only)
+    GAS_FUNDER_PRIVATE_KEY: string;
+
+    // Email (server-only)
+    RESEND_API_KEY: string;
   }
 }
