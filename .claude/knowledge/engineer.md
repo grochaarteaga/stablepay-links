@@ -55,7 +55,7 @@ _(Append discovered traps here so nobody relearns them.)_
 1. Write migration in `supabase/migrations/NNN_description.sql`
 2. Test locally with Supabase CLI or by running against a dev project
 3. Verify rollback path (or document that it's forward-only)
-4. Hand off to **shipper** for prod application
+4. Hand off to **devops** for prod application
 
 ## Log
 
@@ -64,3 +64,9 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with stack reference and baseline conventions.
 - TODO: first engineer task should inventory `src/` structure and add directory conventions here.
+
+### 2026-04-24 — Code review: agent system + env type additions
+- Reviewed 4-commit branch adding agent system, slash commands, knowledge bases, canonical sources, `.claude/settings.json`, `vercel.json`, and two new env type declarations (`GAS_FUNDER_PRIVATE_KEY`, `RESEND_API_KEY`).
+- Blockers: 3 leftover "shipper" references in committed `.claude/` files after the shipper→devops rename; `build-spec.md` references `docs/marketing/lovable-v1-prompt.md` (gitignored, not the canonical committed path `.claude/sources/landing-page/brand-spec.md`).
+- `settings.json` `"Bash(git add *)"` permission is broad — worth narrowing or at least documenting why it's intentional.
+- No application code, schema, or auth changes on this branch; QA review not required. UI changes are documentation/marketing files only — designer review optional.

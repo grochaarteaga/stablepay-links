@@ -20,7 +20,7 @@ routes, Supabase schemas) is off-limits — do not read, edit, or refactor it.
 
 Before writing any code, read these files in the repo:
 
-1. `docs/marketing/lovable-v1-prompt.md` — the full brand spec, color palette, copy,
+1. `.claude/sources/landing-page/brand-spec.md` — the full brand spec, color palette, copy,
    section list, tone, and banned words. This is the source of truth for copy
    and visual direction.
 2. `src/app/page.tsx` — the landing page composition root. Contains `TODO`
@@ -161,7 +161,7 @@ colored glows. No pure black (`#000`). No navy. No off-whites.
   revolutionary, cutting-edge, game-changing, leverage, solution.**
 - Preferred framing: "stablecoin rails," "modern payment rails," "instant
   settlement network," "payment infrastructure."
-- Use the exact copy from `docs/marketing/lovable-v1-prompt.md` for each section. Do
+- Use the exact copy from `.claude/sources/landing-page/brand-spec.md` for each section. Do
   not rephrase.
 - Active voice. Second person. Short sentences. Numbers beat adjectives.
 
@@ -405,7 +405,7 @@ Ask before:
 
 - Installing any new dependency.
 - Modifying anything outside the allowed scope.
-- Making a copy choice that deviates from `docs/marketing/lovable-v1-prompt.md`.
+- Making a copy choice that deviates from `.claude/sources/landing-page/brand-spec.md`.
 - Adding images or binary assets.
 
 Otherwise, proceed section by section and commit as you go.

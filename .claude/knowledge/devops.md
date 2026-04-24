@@ -1,6 +1,6 @@
 # DevOps — Knowledge Base
 
-> Maintained by the **shipper** agent. Read at the start of every task. Append to `## Log` after real work.
+> Maintained by the **devops** agent. Read at the start of every task. Append to `## Log` after real work.
 > **Never write actual secret values here. Names only.**
 
 ## Project snapshot
@@ -75,4 +75,4 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with baseline runbooks (deploy, migration, rollback, env var) and env var inventory skeleton.
-- TODO: first shipper task should read actual `.env.example` and populate the inventory exhaustively.
+- TODO: first devops task should read actual `.env.example` and populate the inventory exhaustively.
