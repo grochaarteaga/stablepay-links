@@ -42,7 +42,14 @@ yarn-error.log*
 next-env.d.ts
 
 # Claude Code project memory
-.claude/
+# Ignore everything in .claude/ by default, except the shared/committed parts
+# (agent definitions, slash commands, knowledge bases, shared settings).
+.claude/*
+!.claude/agents/
+!.claude/commands/
+!.claude/knowledge/
+!.claude/sources/
+!.claude/settings.json
 
 # Internal documents — do not commit
 *.pdf
