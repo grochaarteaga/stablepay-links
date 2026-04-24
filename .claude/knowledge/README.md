@@ -8,6 +8,7 @@ This folder is the shared brain of the PortPagos agent team. Each agent owns one
 | `.claude/agents/designer.md` | `designer.md` |
 | `.claude/agents/engineer.md` | `engineer.md` |
 | `.claude/agents/devops.md` | `devops.md` |
+| `.claude/agents/qa.md` | `qa.md` |
 | `.claude/agents/marketer.md` | `marketer.md` |
 
 ## The protocol

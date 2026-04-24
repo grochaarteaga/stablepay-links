@@ -11,6 +11,8 @@ This folder holds **raw reference material** that agents read for context. Every
 | `landing-page/brand-spec.md` | Source of truth for landing page **copy, tone, voice, palette, typography**. "Lovable v1 prompt." | `marketer`, `designer` |
 | `landing-page/build-spec.md` | Build instructions for the landing page (component scope, files to touch/not touch, git workflow) | `engineer`, `designer` |
 | `landing-page/foundation-pr-notes.md` | PR description for the foundation commit that scaffolded the landing page | `engineer`, `designer` |
+| `glossary.md` | Shared domain vocabulary — shipping, payments, crypto terms with banned-words list and preferred framings | All agents (required before customer-facing copy) |
+| `review-protocol.md` | Who reviews what, when, and how. Defines the light review loop between agents | All agents |
 
 ## Versus `.claude/knowledge/`
 
