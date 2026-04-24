@@ -69,9 +69,22 @@ Five project-level slash commands wrap the most common multi-agent flows. Type `
 - **Destructive actions (delete, force-push, drop table, revoke key) require explicit human confirmation.** Never assume.
 - **Skip heavy folders when scanning**: `node_modules`, `.next`, `.vercel`, `build`, `coverage`, `dist`, lockfiles, `*.pdf`, `*.pptx`.
 
+## Skill libraries installed
+
+Two external skill libraries are installed at `.claude/skills/` and get auto-invoked based on their descriptions. Agents (marketer, designer) route to them for recurring tasks instead of reinventing frameworks.
+
+**[coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills)** — 38 marketing skills (copywriting, cold-email, competitor-profiling, launch-strategy, page-cro, pricing-strategy, etc.). Primarily used by the `marketer` agent.
+
+**[Owl-Listener/designer-skills](https://github.com/Owl-Listener/designer-skills)** — 38 design skills curated across 5 plugins: `ux-strategy` (competitive analysis, vision, principles, stakeholder alignment), `design-systems` (tokens, components, accessibility, theming), `ui-design` (color, typography, layout, responsive, data viz), `interaction-design` (state machines, error handling, loading, feedback), `designer-toolkit` (ux-writing, rationale, case studies). Primarily used by the `designer` agent.
+
+- **Foundation file:** `.agents/product-marketing-context.md` — marketing skills read this first for PortPagos product, audience, voice, and positioning context.
+- **Invoke by name** in conversation ("use the `ux-writing` skill to…") or via `/<skill-name>` if Claude Code exposes a command.
+- **Agent–skill split:** agents are personas (strategic judgment, PortPagos-specific decisions); skills are workflows (specific recurring tasks with frameworks). The marketer and designer agents each carry a routing table in their system prompt mapping common asks to specific skills.
+
 ## Quick orientation files
 
 - `README.md` — full project setup, env var list
 - `docs/` — feature specs, ADRs, marketing drafts (gitignored, local-only)
 - `supabase/migrations/` — DB schema, run in order
 - `.env.example` — shape of the env file (real values are in `.env.local`, gitignored)
+- `.agents/product-marketing-context.md` — foundation file for all marketing skills

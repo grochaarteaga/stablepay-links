@@ -49,7 +49,15 @@ next-env.d.ts
 !.claude/commands/
 !.claude/knowledge/
 !.claude/sources/
+!.claude/skills/
 !.claude/settings.json
+
+# Agent Skills (cross-agent skill standard)
+# Commit the PortPagos foundation context file; ignore anything else (like
+# plugin-installed skill trees which come from upstream and shouldn't be
+# duplicated in this repo).
+.agents/*
+!.agents/product-marketing-context.md
 
 # Internal documents — do not commit
 *.pdf
