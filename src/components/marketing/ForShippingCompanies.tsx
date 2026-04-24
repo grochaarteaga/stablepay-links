@@ -15,7 +15,7 @@ const features = [
   },
   {
     title: "Built-in audit trail",
-    desc: "Every disbursement is recorded on-chain. Finance teams get one-click reconciliation exports.",
+    desc: "Every disbursement is permanently recorded. Finance teams get one-click reconciliation exports.",
   },
   {
     title: "No correspondent bank delays",

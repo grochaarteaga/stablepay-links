@@ -3,7 +3,7 @@ import Link from "next/link";
 const comparisons = [
   { label: "Setup fee", portpagos: "Free", bank: "$500–2,000" },
   { label: "Monthly fee", portpagos: "None", bank: "$50–300" },
-  { label: "Per transaction", portpagos: "0.5%", bank: "3–5% + fixed fee" },
+  { label: "Per transaction", portpagos: "0.60%", bank: "3–5% + fixed fee" },
   { label: "Settlement time", portpagos: "< 2 minutes", bank: "3–15 business days" },
   { label: "Payment visibility", portpagos: "Real-time", bank: "None" },
   { label: "Reconciliation", portpagos: "Automatic", bank: "Manual" },
@@ -33,7 +33,7 @@ export default function PricingTeaser() {
                 Simple pricing
               </p>
               <div className="mt-4 flex items-end gap-2">
-                <span className="text-6xl font-bold tracking-tight text-white">0.5%</span>
+                <span className="text-6xl font-bold tracking-tight text-white">0.60%</span>
                 <span className="mb-2 text-slate-400">per settlement</span>
               </div>
               <p className="mt-2 text-sm text-slate-500">

@@ -14,7 +14,7 @@ const steps = [
   {
     number: "03",
     title: "Customer pays instantly",
-    desc: "They pay in USD-backed stablecoins directly from their account.",
+    desc: "They pay in digital dollars (USD) directly from their account.",
     detail: "No FX conversion, no correspondent banks, no delays.",
   },
   {

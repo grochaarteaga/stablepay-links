@@ -2,7 +2,7 @@ const metrics = [
   { value: "< 2 min", label: "Average settlement time" },
   { value: "$0", label: "Setup cost" },
   { value: "100%", label: "Payment visibility" },
-  { value: "0", label: "Failed settlements" },
+  { value: "0", label: "Failed settlements to date" },
 ];
 
 export default function SocialProof() {

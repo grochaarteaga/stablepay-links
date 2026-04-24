@@ -17,7 +17,7 @@ const cards = [
   {
     icon: "📋",
     title: "Immutable audit trail",
-    desc: "Every payment is recorded on Base, a public blockchain. Transaction hashes are permanent, timestamped, and verifiable by your finance team or auditors at any time.",
+    desc: "Every payment is recorded on the Base network. Payment references are permanent, timestamped, and verifiable by your finance team or auditors at any time.",
   },
 ];
 

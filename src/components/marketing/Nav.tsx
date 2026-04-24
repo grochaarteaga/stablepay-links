@@ -35,7 +35,7 @@ export default function Nav() {
           href="/signup"
           className="inline-flex items-center rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-green-500"
         >
-          Get started
+          Get started — free
         </Link>
       </nav>
     </header>

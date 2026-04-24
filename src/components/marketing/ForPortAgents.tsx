@@ -10,7 +10,7 @@ const pains = [
 const gains = [
   { label: "Same-day settlement", desc: "Get paid before the vessel leaves port." },
   { label: "Zero float risk", desc: "No more advancing costs. Funds arrive first." },
-  { label: "Full payment audit trail", desc: "Every transaction logged with timestamp and tx hash." },
+  { label: "Full payment audit trail", desc: "Every transaction logged with timestamp and payment reference." },
   { label: "One link, any client", desc: "Works for any shipping company, anywhere in the world." },
 ];
 

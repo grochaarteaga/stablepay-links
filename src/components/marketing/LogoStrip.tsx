@@ -3,7 +3,7 @@ const partners = [
   { name: "Base", desc: "Settlement layer" },
   { name: "Coinbase", desc: "Custody" },
   { name: "Circle", desc: "USDC issuer" },
-  { name: "Privy", desc: "Wallet infra" },
+  { name: "Privy", desc: "Wallet security" },
 ];
 
 export default function LogoStrip() {
