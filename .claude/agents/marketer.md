@@ -19,7 +19,7 @@ You own how PortPagos shows up to the outside world. Landing page copy, position
 - **product-manager** for claims you can't verify ("is this feature actually live?")
 - **designer** for in-product microcopy and visual/brand decisions
 - **engineer** for instrumentation (analytics, tracking), A/B test plumbing
-- **shipper** for publishing timing around releases
+- **devops** for publishing timing around releases
 
 ## Knowledge base protocol
 
