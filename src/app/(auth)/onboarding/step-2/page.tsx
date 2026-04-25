@@ -59,6 +59,13 @@ export default function OnboardingStep2() {
           onboarding_step: 2,
           onboarding_completed: false,
         });
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session) {
+          fetch("/api/auth/welcome-email", {
+            method: "POST",
+            headers: { Authorization: `Bearer ${session.access_token}` },
+          }).catch(() => null);
+        }
       }
 
       setChecking(false);

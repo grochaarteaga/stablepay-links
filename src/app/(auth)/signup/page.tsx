@@ -87,6 +87,10 @@ export default function SignupPage() {
         onboarding_step: 2,
         onboarding_completed: false,
       });
+      fetch("/api/auth/welcome-email", {
+        method: "POST",
+        headers: { Authorization: `Bearer ${authData.session.access_token}` },
+      }).catch(() => null);
       window.location.href = "/onboarding/step-2";
     } else {
       // Email confirmation required
