@@ -126,11 +126,11 @@ export async function POST(
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
-<body style="margin:0;padding:0;background-color:#f8fafc;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
-  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc;padding:40px 16px">
+<body style="margin:0;padding:0;background-color:#020617;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background-color:#020617;padding:40px 16px">
     <tr>
       <td align="center">
-        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#ffffff;border-radius:8px;overflow:hidden;box-shadow:0 1px 3px rgba(0,0,0,0.08)">
+        <table width="100%" cellpadding="0" cellspacing="0" style="max-width:560px;background-color:#0f172a;border-radius:12px;border:1px solid #1e293b;overflow:hidden">
 
           <tr>
             <td style="background-color:#16a34a;padding:32px 40px;text-align:center">
@@ -142,43 +142,39 @@ export async function POST(
 
           <tr>
             <td style="padding:32px 40px">
-              <p style="margin:0 0 8px;color:#111827;font-size:20px;font-weight:600">${merchantName} is requesting payment</p>
-              ${description ? `<p style="margin:0 0 24px;color:#6b7280;font-size:15px;line-height:1.5">${description}</p>` : `<p style="margin:0 0 24px"></p>`}
+              <p style="margin:0 0 8px;color:#ffffff;font-size:20px;font-weight:600">${merchantName} is requesting payment</p>
+              ${description ? `<p style="margin:0 0 24px;color:#94a3b8;font-size:15px;line-height:1.5">${description}</p>` : `<p style="margin:0 0 24px"></p>`}
 
               <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px;border-collapse:collapse">
                 <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:14px;width:140px">Amount</td>
-                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#111827;font-size:14px;font-weight:600">${escapeHtml(formattedAmount)}</td>
+                  <td style="padding:10px 0;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:14px;width:140px">Amount</td>
+                  <td style="padding:10px 0;border-bottom:1px solid #1e293b;color:#ffffff;font-size:14px;font-weight:600">${escapeHtml(formattedAmount)}</td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#6b7280;font-size:14px">Network</td>
-                  <td style="padding:10px 0;border-bottom:1px solid #f3f4f6;color:#111827;font-size:14px;font-weight:600">Base</td>
+                  <td style="padding:10px 0;border-bottom:1px solid #1e293b;color:#94a3b8;font-size:14px">Network</td>
+                  <td style="padding:10px 0;border-bottom:1px solid #1e293b;color:#ffffff;font-size:14px;font-weight:600">Base</td>
                 </tr>
                 <tr>
-                  <td style="padding:10px 0;color:#6b7280;font-size:14px">Reference</td>
-                  <td style="padding:10px 0;color:#111827;font-size:14px;font-weight:600;font-family:monospace">${escapeHtml(reference)}</td>
+                  <td style="padding:10px 0;color:#94a3b8;font-size:14px">Reference</td>
+                  <td style="padding:10px 0;color:#ffffff;font-size:14px;font-weight:600;font-family:monospace">${escapeHtml(reference)}</td>
                 </tr>
               </table>
 
-              <table width="100%" cellpadding="0" cellspacing="0">
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-bottom:28px">
                 <tr>
-                  <td align="center">
-                    <a href="${paymentUrl}" style="display:inline-block;background-color:#16a34a;color:#ffffff;text-decoration:none;font-size:16px;font-weight:600;padding:14px 32px;border-radius:6px">Pay now &#x2192;</a>
+                  <td>
+                    <a href="${paymentUrl}" style="display:inline-block;background-color:#16a34a;color:#ffffff;text-decoration:none;font-size:16px;font-weight:600;padding:14px 32px;border-radius:8px">Pay now &#x2192;</a>
                   </td>
                 </tr>
               </table>
+
+              <p style="margin:0;color:#475569;font-size:13px;line-height:1.5">You&#39;ll need a crypto wallet (MetaMask or WalletConnect) with USDC on Base to complete this payment.</p>
             </td>
           </tr>
 
           <tr>
-            <td style="padding:20px 40px;border-top:1px solid #f3f4f6;background-color:#f9fafb">
-              <p style="margin:0;color:#9ca3af;font-size:13px;line-height:1.5">You&#39;ll need a crypto wallet (MetaMask or WalletConnect) with USDC on Base to complete this payment.</p>
-            </td>
-          </tr>
-
-          <tr>
-            <td style="padding:16px 40px 24px;text-align:center">
-              <p style="margin:0;color:#d1d5db;font-size:12px">Powered by <strong style="color:#9ca3af">PortPagos</strong> &mdash; USDC settlement for trade finance</p>
+            <td style="padding:20px 40px 24px;border-top:1px solid #1e293b;text-align:center">
+              <p style="margin:0;color:#334155;font-size:12px">Powered by PortPagos &mdash; USDC settlement for trade finance</p>
             </td>
           </tr>
 
