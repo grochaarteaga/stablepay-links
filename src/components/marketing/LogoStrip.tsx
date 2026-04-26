@@ -4,6 +4,7 @@ const partners = [
   { name: "Coinbase", desc: "Custody" },
   { name: "Circle", desc: "USDC issuer" },
   { name: "Privy", desc: "Wallet security" },
+  { name: "Alchemy", desc: "Chain monitoring" },
 ];
 
 export default function LogoStrip() {
