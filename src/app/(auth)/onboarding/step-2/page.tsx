@@ -38,6 +38,7 @@ export default function OnboardingStep2() {
   const [loading, setLoading] = useState(false);
   const [checking, setChecking] = useState(true);
   const [error, setError] = useState("");
+  const [returnToDashboard, setReturnToDashboard] = useState(false);
 
   useEffect(() => {
     async function checkAuth() {
@@ -48,7 +49,7 @@ export default function OnboardingStep2() {
       const { data: profile } = await supabase
         .from("profiles").select("onboarding_step, onboarding_completed").eq("user_id", user.id).maybeSingle();
 
-      if (profile?.onboarding_completed) { window.location.href = "/dashboard"; return; }
+      if (profile?.onboarding_completed) { setReturnToDashboard(true); }
 
       // If no profile exists, create one (handles email-confirmation resume flow)
       if (!profile) {
@@ -91,7 +92,7 @@ export default function OnboardingStep2() {
 
     if (updateError) { setError("Something went wrong. Please try again."); setLoading(false); return; }
 
-    window.location.href = "/onboarding/step-3";
+    window.location.href = returnToDashboard ? "/dashboard" : "/onboarding/step-3";
   }
 
   if (checking) {

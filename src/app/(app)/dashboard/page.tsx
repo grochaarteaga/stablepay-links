@@ -84,6 +84,7 @@ export default function DashboardPage() {
   const [showTopUpModal, setShowTopUpModal] = useState(false);
   const [walletAddress, setWalletAddress] = useState<string>("");
   const [topups, setTopups] = useState<Topup[]>([]);
+  const [siteOrigin, setSiteOrigin] = useState("");
 
   async function loadDashboard() {
     const { data: { user, session } } = await supabase.auth.getUser().then(async (r) => ({
@@ -165,6 +166,7 @@ export default function DashboardPage() {
   }
 
   useEffect(() => { loadDashboard(); }, []);
+  useEffect(() => { setSiteOrigin(window.location.origin); }, []);
 
   const thirtyDayReceived = useMemo(() => {
     const cutoff = new Date();
@@ -303,7 +305,7 @@ export default function DashboardPage() {
             href="/invoices/new"
             className="px-5 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-sm font-medium transition-colors"
           >
-            + Send Invoice
+            + New Invoice
           </Link>
           <button
             disabled
@@ -322,11 +324,12 @@ export default function DashboardPage() {
             Withdraw
           </button>
           <button
-            onClick={() => setShowTopUpModal(true)}
-            title="Fund your wallet with EUR via bank transfer"
-            className="px-5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-medium hover:bg-slate-700 transition-colors"
+            disabled
+            title="EUR top-up coming soon"
+            className="px-5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-medium opacity-50 cursor-not-allowed flex items-center gap-2"
           >
             Top up
+            <span className="text-xs bg-slate-700 px-1.5 py-0.5 rounded text-slate-400">Soon</span>
           </button>
         </section>
 
@@ -355,20 +358,7 @@ export default function DashboardPage() {
                 <p className="text-sm text-green-400 font-medium">+${dailyChange.toFixed(2)} today</p>
               )}
             </div>
-            <p className="text-xs text-slate-600 mt-1">Ready to withdraw — coming soon</p>
 
-            {/* Trust block */}
-            <div className="mt-5 pt-4 border-t border-slate-800 grid grid-cols-1 sm:grid-cols-3 gap-2">
-              {[
-                "No wallet needed",
-                "No crypto knowledge required",
-                "Payments via simple invoice link",
-              ].map((item) => (
-                <p key={item} className="text-xs text-slate-400 flex items-center gap-1.5">
-                  <span className="text-green-500 font-bold">✓</span> {item}
-                </p>
-              ))}
-            </div>
           </div>
 
           {/* Analytics */}
@@ -473,7 +463,6 @@ export default function DashboardPage() {
                     <th className="text-left py-2 pb-3 font-medium">Invoice ID</th>
                     <th className="text-left py-2 pb-3 font-medium">Customer</th>
                     <th className="text-left py-2 pb-3 font-medium">Amount</th>
-                    <th className="text-left py-2 pb-3 font-medium">Currency</th>
                     <th className="text-left py-2 pb-3 font-medium">Status</th>
                     <th className="text-left py-2 pb-3 font-medium">Date</th>
                     <th className="text-left py-2 pb-3 font-medium">Link</th>
@@ -487,16 +476,18 @@ export default function DashboardPage() {
                       </td>
                       <td className="py-3">{inv.customer || <span className="text-slate-600">—</span>}</td>
                       <td className="py-3 font-medium">${inv.amount.toFixed(2)}</td>
-                      <td className="py-3 text-slate-500 text-xs">{inv.currency || "USDC"}</td>
                       <td className="py-3"><StatusBadge status={inv.status} /></td>
                       <td className="py-3 text-slate-500 text-xs">
                         {new Date(inv.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
                       </td>
                       <td className="py-3">
-                        <Link href={`/pay/${inv.id}`} target="_blank"
-                          className="text-blue-400 hover:text-blue-300 text-xs transition-colors">
-                          Open ↗
-                        </Link>
+                        <div className="flex items-center gap-2">
+                          <CopyButton text={`${siteOrigin}/pay/${inv.id}`} />
+                          <Link href={`/pay/${inv.id}`} target="_blank"
+                            className="text-blue-400 hover:text-blue-300 text-xs transition-colors">
+                            Open ↗
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))}
@@ -670,12 +661,6 @@ export default function DashboardPage() {
             <div>
               <p className="text-xs text-slate-500 mb-1">Email</p>
               <p className="text-sm text-slate-300">{userEmail}</p>
-            </div>
-            <div>
-              <p className="text-xs text-slate-500 mb-1">Verification</p>
-              <span className="text-xs font-medium px-2 py-0.5 rounded bg-yellow-900/50 text-yellow-400">
-                Pending
-              </span>
             </div>
             <div>
               <p className="text-xs text-slate-500 mb-1">Bank withdrawal</p>
