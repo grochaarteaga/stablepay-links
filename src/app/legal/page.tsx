@@ -50,7 +50,7 @@ export default function LegalPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">5. Fees</h3>
-                  <p>PortPagos charges a 0.5% fee per settled transaction. Fees are deducted from the settled amount. No setup fees, monthly fees, or minimum volume commitments apply unless separately agreed in writing.</p>
+                  <p>PortPagos charges a 0.60% fee per settled transaction. Fees are deducted from the settled amount. No setup fees, monthly fees, or minimum volume commitments apply unless separately agreed in writing.</p>
                 </div>
 
                 <div>
