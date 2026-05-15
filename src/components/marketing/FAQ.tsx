@@ -21,7 +21,7 @@ const faqs = [
   },
   {
     q: "How do I receive money in my local currency?",
-    a: "Funds can be paid out to your local bank account in supported currencies through our regulated payout partners. Conversion happens at transparent, mid-market rates.",
+    a: "Local currency payouts are on our roadmap and will be available soon through regulated conversion partners. Currently, funds settle in USDC — a USD-backed stablecoin redeemable 1:1 for US dollars.",
   },
   {
     q: "Who holds the funds during settlement?",
@@ -33,7 +33,7 @@ const faqs = [
   },
   {
     q: "Do I need technical knowledge or a developer?",
-    a: "No. Creating an invoice and receiving payment requires nothing more than a browser. You enter an amount, copy a link, and send it to your customer. No integration, no API, no wallet setup required on your end.",
+    a: "No. Creating an invoice and receiving payment requires nothing more than a browser. You enter an amount, copy a link, and send it to your customer. No integration, no API, no crypto knowledge required — wallet infrastructure is handled automatically in the background.",
   },
 ];
 

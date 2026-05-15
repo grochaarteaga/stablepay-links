@@ -9,5 +9,31 @@
       "Bash(git merge *)",
       "Bash(npm run *)"
     ]
+  },
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mempalace hook run --hook stop --harness claude-code",
+            "timeout": 30,
+            "statusMessage": "Saving to MemPalace..."
+          }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "mempalace hook run --hook precompact --harness claude-code",
+            "timeout": 30,
+            "statusMessage": "Compressing MemPalace context..."
+          }
+        ]
+      }
+    ]
   }
 }

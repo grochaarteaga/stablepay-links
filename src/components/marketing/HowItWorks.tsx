@@ -36,8 +36,8 @@ export default function HowItWorks() {
           From invoice to settled — in four steps.
         </h2>
         <p className="mt-4 max-w-xl text-slate-400">
-          No integration required. No crypto wallets for your customers. No
-          changes to how you run your operation.
+          No integration required. No crypto experience needed — we handle the
+          wallet setup. No changes to how you run your operation.
         </p>
 
         <div className="mt-16 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">

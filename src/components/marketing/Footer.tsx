@@ -56,9 +56,17 @@ export default function Footer() {
           <p className="text-sm text-slate-500">
             © 2026 PortPagos. Built for the maritime industry.
           </p>
-          <p className="text-xs text-slate-600">
-            Running on stablecoin rails. KYC-compliant.
-          </p>
+          <div className="flex flex-col items-start gap-2 md:items-end">
+            <a
+              href="mailto:guillermo@portpagos.com"
+              className="text-xs text-slate-500 transition hover:text-slate-300"
+            >
+              Hablamos español · Nous parlons français
+            </a>
+            <p className="text-xs text-slate-600">
+              Running on stablecoin rails. KYC-compliant.
+            </p>
+          </div>
         </div>
       </div>
     </footer>

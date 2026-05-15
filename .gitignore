@@ -69,3 +69,7 @@ EUR-*.md
 HANDOFF.md
 portpagos-lovable-prompt.md
 docs/
+
+# MemPalace per-project files (issue #185)
+mempalace.yaml
+entities.json

@@ -1,7 +1,6 @@
 const partners = [
   { name: "Bridge", desc: "Fiat rails" },
   { name: "Base", desc: "Settlement layer" },
-  { name: "Coinbase", desc: "Custody" },
   { name: "Circle", desc: "USDC issuer" },
   { name: "Privy", desc: "Wallet security" },
   { name: "Alchemy", desc: "Chain monitoring" },

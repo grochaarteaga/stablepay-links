@@ -9,7 +9,7 @@ const stats = [
     value: "$45",
     unit: "per wire",
     label: "Average international transfer fee",
-    contrast: "PortPagos: 0.5% flat, no hidden fees",
+    contrast: "PortPagos: 0.60% flat, no hidden fees",
   },
   {
     value: "0%",

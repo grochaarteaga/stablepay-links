@@ -2,7 +2,7 @@ const metrics = [
   { value: "< 2 min", label: "Average settlement time" },
   { value: "$0", label: "Setup cost" },
   { value: "100%", label: "Payment visibility" },
-  { value: "0", label: "Failed settlements to date" },
+  { value: "24/7", label: "Settlement availability" },
 ];
 
 export default function SocialProof() {
@@ -34,19 +34,6 @@ export default function SocialProof() {
           ))}
         </div>
 
-        <div className="mt-16 rounded-xl border border-slate-800 bg-slate-900 p-8 md:p-12">
-          <div className="mx-auto max-w-2xl text-center">
-            <p className="text-lg text-slate-300 leading-relaxed">
-              &ldquo;We used to advance port costs and wait three weeks for reimbursement.
-              With PortPagos we send a link and the funds are in our account before
-              the vessel departs. It changed how we think about cash flow.&rdquo;
-            </p>
-            <div className="mt-6">
-              <p className="text-sm font-medium text-white">Port Operations Manager</p>
-              <p className="text-xs text-slate-500 mt-0.5">Mediterranean Shipping Agency</p>
-            </div>
-          </div>
-        </div>
       </div>
     </section>
   );
