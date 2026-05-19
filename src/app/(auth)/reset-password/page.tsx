@@ -72,21 +72,21 @@ function ResetPasswordForm() {
   const [invalidLink, setInvalidLink] = useState(false);
 
   useEffect(() => {
+    let cancelled = false;
     let recovered = false;
 
     // PKCE flow: Supabase sends ?code= in the URL instead of a hash fragment.
-    // Exchange it immediately for a recovery session.
+    // Strip the code from the URL immediately so a re-render or back-button
+    // doesn't try to exchange it a second time (codes are single-use).
     const code = searchParams.get("code");
     if (code) {
+      window.history.replaceState({}, "", window.location.pathname);
       supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
-        if (error) {
-          setInvalidLink(true);
-        } else {
-          recovered = true;
-          setSessionReady(true);
-        }
+        if (cancelled) return;
+        if (error) setInvalidLink(true);
+        else setSessionReady(true);
       });
-      return;
+      return () => { cancelled = true; };
     }
 
     // Implicit flow: wait for PASSWORD_RECOVERY event fired from hash fragment.
@@ -143,8 +143,9 @@ function ResetPasswordForm() {
       return;
     }
 
-    // Sign out the recovery session so middleware doesn't redirect away from /login
-    await supabase.auth.signOut();
+    // Local sign-out: clears browser cookies without revoking the refresh token
+    // server-side, avoiding stale chunk collisions with the upcoming login session.
+    await supabase.auth.signOut({ scope: "local" });
     setDone(true);
   }
 

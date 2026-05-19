@@ -70,6 +70,8 @@ function LoginForm() {
       return;
     }
 
+    // Flush the storage adapter so cookies are written before the hard redirect.
+    await supabase.auth.getSession();
     const { data: { user } } = await supabase.auth.getUser();
     if (user) {
       const { data: profile } = await supabase
