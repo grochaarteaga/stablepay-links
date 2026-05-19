@@ -4,12 +4,15 @@ This folder is the shared brain of the PortPagos agent team. Each agent owns one
 
 | Agent definition | Knowledge file |
 |---|---|
+| `.claude/agents/founder.md` | `founder.md` |
 | `.claude/agents/product-manager.md` | `product-manager.md` |
 | `.claude/agents/designer.md` | `designer.md` |
 | `.claude/agents/engineer.md` | `engineer.md` |
-| `.claude/agents/devops.md` | `devops.md` |
 | `.claude/agents/qa.md` | `qa.md` |
+| `.claude/agents/devops.md` | `devops.md` |
 | `.claude/agents/marketer.md` | `marketer.md` |
+| `.claude/agents/sales.md` | `sales.md` |
+| `.claude/agents/compliance.md` | `compliance.md` |
 
 ## The protocol
 

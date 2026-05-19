@@ -65,6 +65,42 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 - Seeded with stack reference and baseline conventions.
 - TODO: first engineer task should inventory `src/` structure and add directory conventions here.
 
+### 2026-04-24 — Pre-ship review: marketing microcopy / UX-writing pass (8 files)
+- All 8 files in `src/components/marketing/` reviewed (working-tree diff, not committed).
+- One structural change slipped in alongside the text changes: `ForShippingCompanies.tsx` got a new `<Link href="/signup">` CTA with layout wrapper (`flex flex-col gap-3 sm:flex-row`). This is a layout/component change, not just copy. Route confirmed to exist (`src/app/(auth)/signup`). Flagged as a blocker because it bypasses designer review for a UI addition.
+- Price change 0.5% → 0.60%: consistent across both the hero display and comparison table row in `PricingTeaser.tsx`. No other hardcoded occurrences found.
+- "tx hash" and "on-chain" banned phrases removed correctly in `ForPortAgents.tsx`, `ForShippingCompanies.tsx`, `InfrastructureTrust.tsx`. Pre-existing "No crypto wallets" in `HowItWorks.tsx` not touched by this diff (was already there; should-fix but not a blocker for this PR).
+- `LogoStrip.tsx` "Wallet security" label for Privy: "wallet" is permitted in partner/infra context; the ban is specifically when addressing payers.
+- JSX structure, tags, and TypeScript in all 8 files are valid. No mismatched tags, no missing quotes, no logic changes outside `ForShippingCompanies.tsx` layout.
+
+### 2026-04-25 — New API routes: send-email + welcome-email
+- Created `POST /api/invoices/[invoiceId]/send-email`: Bearer-auth, ownership-checked, 409 on paid/cancelled, escapes all user HTML, sends payment-request email via Resend. Resend SDK uses `replyTo` (camelCase), not `reply_to` — confirmed by tsc.
+- Created `POST /api/auth/welcome-email`: Bearer-auth, non-fatal Resend call (errors logged but always returns `{ ok: true }` to not block signup flow), three-step onboarding template.
+- `profiles` table is queried as `.eq("user_id", user.id)` matching the pattern in `GET /api/invoices/[invoiceId]/route.ts`. `merchant_profiles` is a separate table used by wallet routes.
+- Auth pattern: `authHeader.startsWith("Bearer ") ? authHeader.slice(7) : ""` — consistent with `generate-wallet` and `merchant/wallet` routes.
+- `amount` field on invoices comes back as `number | string` depending on Supabase client serialization; coerce with `Number()` before calling `toLocaleString`.
+
+### 2026-04-25 — Rewrite: invoices/new/page.tsx — two-step form + success screen
+- Replaced single-step form + `window.location.href` redirect with a `Step = "form" | "success"` state machine. No redirect on success.
+- `SuccessData` type captures `invoiceId`, `amount`, `customerName`, `customerEmail` — passed from submit handler to success step without a round-trip.
+- Customer email is held in component state only (never written to DB) and pre-fills the send-email input on the success screen.
+- `generate-wallet` call wrapped in `.catch(() => null)` — already non-fatal in the original, but now must not throw because we can no longer show a separate "generating wallet..." message.
+- `handleSendEmail` uses `supabase.auth.getSession()` for the Bearer token, consistent with other API call sites in this codebase.
+- Copy-link button uses `navigator.clipboard.writeText` with a 2s "✓ Copied!" revert; safe here because this is a `"use client"` component in a browser context.
+- WhatsApp share opens `wa.me/?text=` in a new tab with `rel="noopener noreferrer"`.
+- `resetAll()` resets all state slices back to initial values — important that `emailResult` and `copied` are also cleared so stale UI doesn't persist across "Create another" cycles.
+- Visual token alignment: `rounded-2xl`, `py-2.5`, `text-xs font-medium text-slate-400` labels, `bg-slate-800 border border-slate-700` inputs, `focus:border-slate-500 focus:ring-1 focus:ring-slate-500` — all lifted directly from WithdrawModal to keep the two surfaces consistent.
+- `tsc --noEmit` passed with zero errors.
+
+### 2026-04-25 — 8 targeted edits to dashboard/page.tsx
+- Added `siteOrigin` state (initialized empty, set via `window.location.origin` in a dedicated `useEffect`) to build full copy-link URLs without SSR mismatch.
+- Quick Actions: renamed "Send Invoice" → "New Invoice"; disabled Top up button with "Soon" badge (matches Send Payment pattern); `showTopUpModal` setter is now unreachable from the button but the modal and state are still wired — safe to clean up later or when the feature ships.
+- Balance card: removed "Ready to withdraw — coming soon" stale line and the entire trust block (`No wallet needed` / etc.) — these belong on the marketing surface, not inside the merchant dashboard.
+- Invoice table: removed Currency `<th>` and `<td>` (currency is always USDC; redundant column).
+- Invoice table Link column: added `<CopyButton>` next to "Open ↗", passing `${siteOrigin}/pay/${inv.id}` — reuses the existing `CopyButton` component already in scope.
+- Account & Settings: removed the Verification "Pending" `<div>` block; Email and Bank withdrawal divs left intact.
+- `tsc --noEmit` passed with zero errors.
+
 ### 2026-04-24 — Code review: agent system + env type additions
 - Reviewed 4-commit branch adding agent system, slash commands, knowledge bases, canonical sources, `.claude/settings.json`, `vercel.json`, and two new env type declarations (`GAS_FUNDER_PRIVATE_KEY`, `RESEND_API_KEY`).
 - Blockers: 3 leftover "shipper" references in committed `.claude/` files after the shipper→devops rename; `build-spec.md` references `docs/marketing/lovable-v1-prompt.md` (gitignored, not the canonical committed path `.claude/sources/landing-page/brand-spec.md`).

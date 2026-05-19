@@ -18,13 +18,25 @@
 
 ## Current roadmap
 
-_(Update this section as priorities shift.)_
+_(Last updated 2026-04-30. Pre-revenue, Bridge API production access submitted, 2-3 pilots is the gate before fundraising.)_
 
-- [ ] Landing page foundation (in progress — see `LANDING-PAGE-VSCODE-PROMPT.md`)
-- [ ] Invoice → payment link flow (core)
-- [ ] Bridge fiat on/off-ramp integration
-- [ ] Merchant dashboard (balance, history, export)
-- [ ] Alchemy webhook → ledger reconciliation
+**Now (unblocks pilots)**
+1. [ ] Close Bridge API production access + run one live end-to-end payment (invoice → link → USDC received)
+2. [ ] Sign 2-3 pilot port agents; get each to issue one real invoice within 30 days
+3. [ ] Fix Alchemy webhook reliability (payload shape variation caused past missed payments — see memory file)
+4. [ ] Rotate all production secrets (compromised via developer zip share — do before any pilot payment)
+5. [ ] Minimum merchant dashboard: USDC balance + paid invoice list (no analytics, no export yet) — S scope
+
+**Soon (after first pilot payment)**
+- Bridge fiat off-ramp UX (withdrawal / sweep flow)
+- Invoice PDF / export for merchant accounting
+
+**Explicit non-goals right now**
+- Multi-currency invoicing
+- KYB tier model
+- Fundraising materials
+- Landing page optimization
+- Fiat conversion at checkout
 
 ## Open questions
 
@@ -54,3 +66,9 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with PortPagos product context, ICP, initial roadmap.
 - TODO: fill in real current roadmap from `docs/features/` on next PM task.
+
+### 2026-04-30 — Roadmap reprioritized for pilot gate
+- Context: pre-revenue, Bridge API production access submitted, legal entity is Qorua (French micro-entreprise), strategic goal is 2-3 pilots with real USDC flows before fundraising.
+- Top 5: (1) close Bridge + live e2e payment, (2) sign pilots, (3) fix Alchemy webhook reliability, (4) rotate compromised prod secrets, (5) minimum merchant dashboard.
+- Explicit non-goals until pilots are live: multi-currency, KYB tiers, fundraising materials, landing page optimization.
+- Follow-up: engineer should be handed item 3 (Alchemy webhook fix) and item 5 (dashboard MVP) once Bridge access closes. Secrets rotation is a devops + human action item — flag to Guillermo directly.
