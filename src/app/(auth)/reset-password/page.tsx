@@ -72,16 +72,29 @@ function ResetPasswordForm() {
   const [invalidLink, setInvalidLink] = useState(false);
 
   useEffect(() => {
+    let recovered = false;
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
+        recovered = true;
         setSessionReady(true);
-      } else if (event === "SIGNED_OUT" || event === "INITIAL_SESSION") {
-        supabase.auth.getSession().then(({ data }) => {
-          if (!data.session) setInvalidLink(true);
-        });
       }
     });
-    return () => subscription.unsubscribe();
+
+    // Give Supabase up to 3 seconds to fire PASSWORD_RECOVERY before declaring the link invalid
+    const timer = setTimeout(() => {
+      if (!recovered) {
+        supabase.auth.getSession().then(({ data }) => {
+          if (!data.session) setInvalidLink(true);
+          else setSessionReady(true);
+        });
+      }
+    }, 3000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(timer);
+    };
   }, []);
 
   async function handleReset(e: React.FormEvent) {
