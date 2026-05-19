@@ -111,6 +111,14 @@ function ResetPasswordForm() {
     }
 
     setLoading(true);
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData.session) {
+      setError("Your reset link has expired. Please request a new one.");
+      setLoading(false);
+      return;
+    }
+
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {

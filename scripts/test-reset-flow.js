@@ -52,11 +52,9 @@ async function run() {
       email: testEmail,
     });
     if (linkErr) throw linkErr;
-    const actionLink = linkData.properties.action_link;
-    const url = new URL(actionLink);
-    tokenHash = url.searchParams.get("token_hash");
-    if (!tokenHash) throw new Error("No token_hash in recovery link: " + actionLink);
-    await pass("token_hash extracted from link");
+    tokenHash = linkData.properties.hashed_token;
+    if (!tokenHash) throw new Error("No hashed_token in generateLink response: " + JSON.stringify(linkData));
+    await pass("hashed_token extracted from response");
 
     // 3. Verify OTP — simulates clicking the link in the browser
     console.log("\n3. Verifying recovery token (simulating link click)...");
