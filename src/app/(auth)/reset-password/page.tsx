@@ -162,9 +162,9 @@ function ResetPasswordForm() {
           </div>
           <h2 className="text-xl font-semibold mb-2">Password updated</h2>
           <p className="text-slate-400 text-sm mb-6">You can now sign in with your new password.</p>
-          <Link href="/login" className="inline-flex items-center justify-center w-full max-w-xs py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-sm font-medium transition-colors">
+          <a href="/login" className="inline-flex items-center justify-center w-full max-w-xs py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-sm font-medium transition-colors">
             Go to login
-          </Link>
+          </a>
         </div>
       </main>
     );
