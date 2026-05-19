@@ -74,6 +74,22 @@ function ResetPasswordForm() {
   useEffect(() => {
     let recovered = false;
 
+    // PKCE flow: Supabase sends ?code= in the URL instead of a hash fragment.
+    // Exchange it immediately for a recovery session.
+    const code = searchParams.get("code");
+    if (code) {
+      supabase.auth.exchangeCodeForSession(code).then(({ error }) => {
+        if (error) {
+          setInvalidLink(true);
+        } else {
+          recovered = true;
+          setSessionReady(true);
+        }
+      });
+      return;
+    }
+
+    // Implicit flow: wait for PASSWORD_RECOVERY event fired from hash fragment.
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         recovered = true;
@@ -95,7 +111,7 @@ function ResetPasswordForm() {
       subscription.unsubscribe();
       clearTimeout(timer);
     };
-  }, []);
+  }, [searchParams]);
 
   async function handleReset(e: React.FormEvent) {
     e.preventDefault();
