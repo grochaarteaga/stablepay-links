@@ -27,16 +27,19 @@ Guillermo Rocha (guillermo.rocha.arteaga@gmail.com). Early stage — working sol
 
 ## Agent system
 
-This project uses a team of 6 specialized subagents defined in `.claude/agents/`. Each owns a domain and maintains its own knowledge base in `.claude/knowledge/` (1:1 filename match).
+This project uses a team of 9 specialized subagents defined in `.claude/agents/`. Each owns a domain and maintains its own knowledge base in `.claude/knowledge/` (1:1 filename match).
 
 | Agent | Domain | Invoke for… |
 |---|---|---|
+| `founder` | Cross-functional strategy, fundraising, hiring, partnerships, pivots | "Should we raise", "expand to X market", "go/no-go on partnership", "12-month plan" |
 | `product-manager` | Vision, roadmap, specs, prioritization | Feature scoping, user stories, trade-off decisions, release planning |
 | `designer` | Visual design, UX, information architecture | Wireframes, component decisions, flows, accessibility, brand |
 | `engineer` | Code architecture, implementation, refactors | Writing/reviewing code, debugging, technical decisions, migrations |
 | `qa` | Adversarial thinking, edge cases, security review | What could break, concurrency, test gaps, threat models |
 | `devops` | Git, Vercel, Supabase ops, env vars, deploys | Preparing PRs, pushing releases, env management, rollbacks |
 | `marketer` | Positioning, copy, launches, growth | Landing copy, announcements, campaigns, messaging tests |
+| `sales` | Pipeline, prospecting, demos, pilots, deal-level pricing | "Log a call", "follow up with X", pilot conversion, account expansion |
+| `compliance` | Regulatory landscape, KYC/KYB, AML, licensing, GDPR, MiCA | "Is this legal in X", "do we need a license", privacy policy, vendor compliance |
 
 ## How to invoke an agent
 
@@ -44,7 +47,7 @@ Either (a) describe what you need and let Claude Code pick — it uses the `desc
 
 > "Use the **product-manager** agent to write a spec for the recurring-payment feature."
 
-Agents delegate to each other along a defined hand-off protocol (see `.claude/sources/review-protocol.md`). A typical flow: `product-manager` drafts spec → `designer` adds flows → `engineer` implements → `qa` reviews for edge cases → `devops` deploys → `marketer` announces.
+Agents delegate to each other along a defined hand-off protocol (see `.claude/sources/review-protocol.md`). A typical build flow: `product-manager` drafts spec → `designer` adds flows → `engineer` implements → **`qa` reviews for edge cases (mandatory, never skip)** → `compliance` reviews if money/regulatory paths touched → `devops` deploys → `marketer` announces. A typical sales flow: `sales` runs discovery → loops in `compliance` for KYB / jurisdictional questions → loops in `founder` for first-of-kind deal terms → converts to pilot. Strategic decisions (markets, fundraising, hiring) belong to `founder` and feed everyone else.
 
 ## Slash commands
 
@@ -67,11 +70,25 @@ Five project-level slash commands wrap the most common multi-agent flows. Type `
 - **Never write secrets to the knowledge base** — no API keys, RPC URLs with keys, database connection strings, customer PII, or wallet private keys. If you discover one, redact it and flag it.
 - **Read-only by default for anything outside your domain.** Engineer touches code, devops touches deploy config, etc. When in doubt, propose and ask.
 - **Destructive actions (delete, force-push, drop table, revoke key) require explicit human confirmation.** Never assume.
+- **QA before every ship.** Invoke the `qa` agent on any changed feature before pushing to main. Auth flows, payment paths, and webhook handlers always get a QA pass regardless of change size. Lesson: the 2026-05-19 auth incident (7 bugs found post-ship) would have been prevented by one QA pass pre-ship.
 - **Skip heavy folders when scanning**: `node_modules`, `.next`, `.vercel`, `build`, `coverage`, `dist`, lockfiles, `*.pdf`, `*.pptx`.
 
 ## Skill libraries installed
 
-Two external skill libraries are installed at `.claude/skills/` and get auto-invoked based on their descriptions. Agents (marketer, designer) route to them for recurring tasks instead of reinventing frameworks.
+Three skill libraries are installed at `.claude/skills/` and get auto-invoked based on their descriptions.
+
+**PortPagos-specific skills** (built for this repo, highest priority):
+
+| Skill | Invoke when… |
+|---|---|
+| `ux-writing-pass` | Any UI lands or copy feels off — scans all files for banned words, wrong pricing, jargon |
+| `email-template-check` | After adding/editing any transactional email — checks dark theme, brand, deliverability |
+| `dashboard-audit` | Before a release or after a sprint — hunts stale copy, wrong labels, missing affordances |
+| `knowledge-update` | End of any substantial session — appends decisions to the matching `.claude/knowledge/` file |
+| `vercel-debug` | Vercel build fails — runs local build, diagnoses against known-issues checklist, applies fix |
+| `payment-verify` | "did the payment land?", "customer says they paid", "invoice still pending" — 3-source reconciliation: Supabase invoice + ledger + Basescan on-chain |
+
+Two external skill libraries are also installed. Agents (marketer, designer) route to them for recurring tasks instead of reinventing frameworks.
 
 **[coreyhaines31/marketingskills](https://github.com/coreyhaines31/marketingskills)** — 38 marketing skills (copywriting, cold-email, competitor-profiling, launch-strategy, page-cro, pricing-strategy, etc.). Primarily used by the `marketer` agent.
 

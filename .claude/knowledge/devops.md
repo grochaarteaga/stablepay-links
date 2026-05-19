@@ -38,11 +38,24 @@ _(Shipper should diff `.env.example` on each task and update this list.)_
 ## Runbooks
 
 ### Standard deploy
-1. PR merged to `main`
-2. Vercel auto-builds → prod
-3. Watch the build log for ~90 seconds
-4. Smoke-check: load homepage, trigger a non-mutating health check
-5. Log entry: what shipped, commit SHA, build duration
+0. **QA gate (mandatory — never skip):** invoke the `qa` agent on every changed feature before committing. Auth flows, payment paths, and webhook handlers always get a QA pass. No exceptions. This is the lesson from the 2026-05-19 auth incident (missing /reset-password page, no middleware, broken SMTP, onboarding bypass — all would have been caught in one QA pass).
+1. Run all tests (`npm test`) — must be green
+2. TypeScript check (`npx tsc --noEmit`) — must be clean
+3. PR merged to `main`
+4. Vercel auto-builds → prod
+5. Watch the build log for ~90 seconds
+6. Smoke-check the changed feature manually: happy path + one failure path
+7. Log entry: what shipped, commit SHA, build duration
+
+### Pre-ship checklist (run before every push to main)
+- [ ] QA agent invoked and punch list reviewed
+- [ ] `npm test` passes (all tests green)
+- [ ] `npx tsc --noEmit` clean
+- [ ] Happy path manually tested in browser
+- [ ] At least one failure/error path tested (wrong password, missing field, expired token, etc.)
+- [ ] Any new env vars added to Vercel + `.env.example`
+- [ ] Any DB migrations noted and ready to apply to prod Supabase
+- [ ] No secrets committed (grep for API keys, tokens, passwords in diff)
 
 ### Database migration (prod)
 1. Migration tested on dev Supabase project
@@ -76,3 +89,13 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with baseline runbooks (deploy, migration, rollback, env var) and env var inventory skeleton.
 - TODO: first devops task should read actual `.env.example` and populate the inventory exhaustively.
+
+### 2026-04-24 — UX writing pass + agent system ship
+- SHAs shipped to origin/main: `661c805..3749f47` (7 commits). Final HEAD: `3749f47`.
+- Commit `3749f47` — UX writing pass on 8 marketing components: `ForPortAgents.tsx`, `ForShippingCompanies.tsx`, `HowItWorks.tsx`, `InfrastructureTrust.tsx`, `LogoStrip.tsx`, `Nav.tsx`, `PricingTeaser.tsx`, `SocialProof.tsx`. Removed banned words, corrected pricing copy to 0.60%.
+- Commits `faf7fe8..c25e201` — agent system (6 files): knowledge bases, QA agent, slash commands, review protocol, glossary, designer skills, devops rename.
+- No DB migrations. No env var changes. No new dependencies.
+- Engineer sign-off: GO (structural revert in ForShippingCompanies.tsx confirmed before commit).
+- Smoke-check items: homepage load, pricing display shows 0.60%, no console errors, logo strip renders, nav intact, no banned words in copy sections.
+- Smoke-check result: PASSED (confirmed by Guillermo).
+- Rollback procedure if needed: Vercel dashboard → Deployments → promote previous "Ready" deployment.
