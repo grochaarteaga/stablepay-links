@@ -106,6 +106,8 @@ function ResetPasswordForm() {
       return;
     }
 
+    // Sign out the recovery session so middleware doesn't redirect away from /login
+    await supabase.auth.signOut();
     setDone(true);
   }
 
