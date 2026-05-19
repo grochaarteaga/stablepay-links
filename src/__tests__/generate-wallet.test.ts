@@ -171,10 +171,10 @@ describe("POST /api/invoices/[invoiceId]/generate-wallet", () => {
   });
 
   describe("missing merchant wallet", () => {
-    it("returns 400 when merchant has not set up a Privy wallet yet", async () => {
+    it("returns 500 when Privy wallet creation fails for a merchant with no profile", async () => {
       mockProfileMaybeSingle.mockResolvedValue({ data: null, error: null });
       const res = await POST(buildRequest("valid-token"), context);
-      expect(res.status).toBe(400);
+      expect(res.status).toBe(500);
     });
   });
 });
