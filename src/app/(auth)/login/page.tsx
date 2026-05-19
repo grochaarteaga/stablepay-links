@@ -74,12 +74,9 @@ function LoginForm() {
         .maybeSingle();
 
       if (!profile) {
-        await supabase.from("profiles").insert({
-          user_id: user.id,
-          onboarding_step: 3,
-          onboarding_completed: true,
-        });
-        window.location.href = "/dashboard";
+        // No profile means new user who confirmed email then came to /login directly.
+        // Send to step-2 which handles profile creation and welcome email.
+        window.location.href = "/onboarding/step-2";
       } else if (profile.onboarding_completed) {
         window.location.href = "/dashboard";
       } else {

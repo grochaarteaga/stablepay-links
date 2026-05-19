@@ -72,24 +72,16 @@ function ResetPasswordForm() {
   const [invalidLink, setInvalidLink] = useState(false);
 
   useEffect(() => {
-    // Supabase puts the recovery token in the URL hash — exchanging it sets the session
-    supabase.auth.onAuthStateChange((event) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
       if (event === "PASSWORD_RECOVERY") {
         setSessionReady(true);
-      }
-    });
-
-    // If no hash token present, the link is invalid or already used
-    const hash = window.location.hash;
-    if (!hash.includes("type=recovery") && !hash.includes("access_token")) {
-      // Give Supabase a moment to process the hash before declaring it invalid
-      setTimeout(() => {
+      } else if (event === "SIGNED_OUT" || event === "INITIAL_SESSION") {
         supabase.auth.getSession().then(({ data }) => {
           if (!data.session) setInvalidLink(true);
-          else setSessionReady(true);
         });
-      }, 500);
-    }
+      }
+    });
+    return () => subscription.unsubscribe();
   }, []);
 
   async function handleReset(e: React.FormEvent) {

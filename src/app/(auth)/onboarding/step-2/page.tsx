@@ -54,12 +54,13 @@ export default function OnboardingStep2() {
       // If no profile exists, create one (handles email-confirmation resume flow)
       if (!profile) {
         const savedCompany = localStorage.getItem("portpagos_company") || "";
-        await supabase.from("profiles").insert({
+        await supabase.from("profiles").upsert({
           user_id: user.id,
           company_name: savedCompany,
           onboarding_step: 2,
           onboarding_completed: false,
-        });
+          welcome_email_sent: false,
+        }, { onConflict: "user_id", ignoreDuplicates: true });
         const { data: { session } } = await supabase.auth.getSession();
         if (session) {
           fetch("/api/auth/welcome-email", {

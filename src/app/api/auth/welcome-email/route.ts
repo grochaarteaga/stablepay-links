@@ -32,9 +32,13 @@ export async function POST(req: Request) {
 
   const { data: profile } = await supabaseAdmin
     .from("profiles")
-    .select("company_name")
+    .select("company_name, welcome_email_sent")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  if (profile?.welcome_email_sent) {
+    return NextResponse.json({ ok: true, skipped: true });
+  }
 
   const companyName = profile?.company_name?.trim() ?? "";
 
@@ -163,6 +167,11 @@ export async function POST(req: Request) {
 
     if (sendError) {
       console.error("Resend error (welcome-email):", JSON.stringify(sendError));
+    } else {
+      await supabaseAdmin
+        .from("profiles")
+        .update({ welcome_email_sent: true })
+        .eq("user_id", user.id);
     }
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

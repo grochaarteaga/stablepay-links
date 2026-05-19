@@ -188,13 +188,17 @@ export default function OnboardingStep3() {
 
           <button
             onClick={async () => {
+              if (loading) return;
+              setLoading(true);
+              setLoadingMessage("Skipping…");
               const { data: { user } } = await supabase.auth.getUser();
               if (user) {
                 await supabase.from("profiles").update({ onboarding_completed: true }).eq("user_id", user.id);
               }
               window.location.href = "/dashboard";
             }}
-            className="w-full text-center text-xs text-slate-600 hover:text-slate-400 mt-4 transition-colors"
+            disabled={loading}
+            className="w-full text-center text-xs text-slate-600 hover:text-slate-400 mt-4 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
           >
             Skip for now — I'll create an invoice later
           </button>
