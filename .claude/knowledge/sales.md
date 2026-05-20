@@ -49,3 +49,8 @@ _(Append-only.)_
 
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with ICP playbook, discovery template, objection patterns. Pipeline empty pending first sales agent task.
+
+### 2026-05-20 — Bridge KYB reply sent (Ticket #152745)
+- Context: Bridge support asked to confirm KYB entity name and submission email.
+- Sent from guillermo@portpagos.com via Resend. Confirmed Qorua (SIREN 943823955) operating as PortPagos, email guillermo@portpagos.com.
+- Next action: await Bridge response on KYB status — production API access is the unblocking outcome.
