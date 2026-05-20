@@ -46,6 +46,22 @@ Your long-term memory is at `.claude/knowledge/engineer.md`. Every task:
 
 See `.claude/sources/review-protocol.md`. Your PRs are reviewed by **qa** (edge cases) and **designer** (if UI changed). You review **product-manager** specs for technical feasibility, **devops** deploy plans for test/migration readiness, and **qa** test plans for realism.
 
+## Intake gate — mandatory before implementing any feature
+
+**Do not write a single line of product code for a new feature or UI change until you have both:**
+1. A cleared intake brief from **product-manager** (scope, success metric, acceptance criteria)
+2. UX notes from **designer** (states, component choices, copy)
+
+If either is missing, stop and say: *"I need the intake brief from product-manager and designer before I can implement this."*
+
+**Exceptions that skip intake** (go straight to implementation):
+- Bug fixes
+- Copy/label changes
+- Single-line config changes or dependency bumps
+- Guillermo explicitly says "skip intake, just build it"
+
+This gate exists because the 2026-05-19 incident and the sidebar (2026-05-20) were both built without intake — the right shape only became clear after the fact.
+
 ## When another agent hands you a task
 
 1. Read the spec or diff fully before touching code.

@@ -47,7 +47,38 @@ Either (a) describe what you need and let Claude Code pick — it uses the `desc
 
 > "Use the **product-manager** agent to write a spec for the recurring-payment feature."
 
-Agents delegate to each other along a defined hand-off protocol (see `.claude/sources/review-protocol.md`). A typical build flow: `product-manager` drafts spec → `designer` adds flows → `engineer` implements → **`qa` reviews for edge cases (mandatory, never skip)** → `compliance` reviews if money/regulatory paths touched → `devops` deploys → `marketer` announces. A typical sales flow: `sales` runs discovery → loops in `compliance` for KYB / jurisdictional questions → loops in `founder` for first-of-kind deal terms → converts to pilot. Strategic decisions (markets, fundraising, hiring) belong to `founder` and feed everyone else.
+### Orchestration flows
+
+**Build flow (any non-trivial feature or UI change):**
+
+```
+user suggestion
+  → [INTAKE] product-manager + designer  ← run IN PARALLEL, before any code
+       PM:       worth building? scope? success metric?
+       Designer: how it should look/feel? states? components?
+  → Guillermo reviews intake brief → approves or redirects
+  → engineer implements (only after intake cleared)
+  → qa reviews diff before commit (mandatory)
+  → compliance reviews if money/auth/regulatory paths touched
+  → devops deploys
+  → marketer announces (if user-facing)
+```
+
+**What triggers the intake gate** (product-manager + designer run first):
+- Any new page, route, or navigation change
+- Any new UI component or screen
+- Any new user flow or interaction pattern
+- Feature suggestions from Guillermo ("I'd like to have X", "what about Y")
+
+**What skips intake** (engineer goes directly):
+- Bug fixes
+- Copy/label/microcopy changes
+- Single-line config changes, dependency bumps
+- Guillermo explicitly says "just do it, skip intake"
+
+**Sales flow:** `sales` runs discovery → loops in `compliance` for KYB / jurisdictional questions → loops in `founder` for first-of-kind deal terms → converts to pilot.
+
+**Strategic decisions** (markets, fundraising, hiring) belong to `founder` and feed everyone else.
 
 ## Slash commands
 
@@ -55,11 +86,13 @@ Five project-level slash commands wrap the most common multi-agent flows. Type `
 
 | Command | What it does |
 |---|---|
-| `/spec <feature>` | `product-manager` writes a short, buildable spec |
+| `/spec <feature>` | `product-manager` + `designer` run intake in parallel, produce a brief for Guillermo to approve before any code is written |
 | `/review [scope]` | `engineer` reviews the current branch, hands UI bits to `designer` and risky paths to `qa` |
 | `/ship [branch]` | `devops` walks through a staged, confirmed-per-step deploy to production |
 | `/launch-post <feature>` | `marketer` drafts landing / email / social variants, flags unverified claims |
 | `/triage <issue>` | `engineer` establishes facts, `product-manager` decides disposition (fix-now / fix-soon / decline / clarify) |
+
+> **Default entry point for any build:** use `/spec <feature>` first. It runs the intake gate and produces a brief Guillermo can approve or redirect before any code is written.
 
 ## House rules for any agent working here
 
