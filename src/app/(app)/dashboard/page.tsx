@@ -224,28 +224,6 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-slate-950 text-white flex flex-col">
 
-      {/* ── Navbar ─────────────────────────────────────────────── */}
-      <header className="border-b border-slate-800 px-6 md:px-10 py-4 flex items-center justify-between">
-        <div>
-          <div className="flex items-center gap-2">
-            <span className="text-base font-bold tracking-tight">PortPagos</span>
-            <span className="text-xs text-slate-500 bg-slate-800 border border-slate-700 px-2 py-0.5 rounded">
-              Merchant Account
-            </span>
-          </div>
-          {companyName
-            ? <p className="text-slate-400 text-xs mt-0.5">Welcome back, <span className="text-slate-300 font-medium">{companyName}</span></p>
-            : userEmail && <p className="text-slate-500 text-xs mt-0.5">{userEmail}</p>
-          }
-        </div>
-        <button
-          onClick={async () => { await supabase.auth.signOut(); window.location.href = "/login"; }}
-          className="px-4 py-2 rounded-lg bg-slate-800 border border-slate-700 text-sm hover:bg-slate-700 transition-colors"
-        >
-          Logout
-        </button>
-      </header>
-
       <div className="px-6 md:px-10 py-6 space-y-6 max-w-7xl mx-auto w-full flex-1">
 
         {/* ── Welcome banner (new users) ──────────────────────────── */}
