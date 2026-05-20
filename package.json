@@ -13,7 +13,8 @@
     "test:reset": "node --env-file=.env.local scripts/test-reset-flow.js",
     "test:login": "node --env-file=.env.local scripts/test-login-flow.js",
     "test:e2e": "playwright test",
-    "test:all": "vitest run && node --env-file=.env.local scripts/test-login-flow.js && node --env-file=.env.local scripts/test-reset-flow.js"
+    "test:all": "vitest run && node --env-file=.env.local scripts/test-login-flow.js && node --env-file=.env.local scripts/test-reset-flow.js",
+    "send-email": "node --env-file=.env.local scripts/send-email.js"
   },
   "dependencies": {
     "@privy-io/server-auth": "^1.32.5",
