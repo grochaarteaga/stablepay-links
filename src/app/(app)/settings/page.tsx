@@ -17,13 +17,17 @@ export default function SettingsPage() {
 
       setEmail(user.email ?? null);
 
-      const [{ data: profile }, { data: merchant }] = await Promise.all([
+      const { data: session } = await supabase.auth.getSession();
+
+      const [{ data: profile }, walletRes] = await Promise.all([
         supabase.from("profiles").select("company_name").eq("user_id", user.id).maybeSingle(),
-        supabase.from("merchant_profiles").select("wallet_address").eq("user_id", user.id).maybeSingle(),
+        fetch("/api/merchant/wallet", {
+          headers: { Authorization: `Bearer ${session.session?.access_token}` },
+        }).then((r) => r.json()),
       ]);
 
       setCompanyName(profile?.company_name ?? null);
-      setWalletAddress(merchant?.wallet_address ?? null);
+      setWalletAddress(walletRes?.address ?? null);
       setLoading(false);
     }
     load();
@@ -80,7 +84,7 @@ export default function SettingsPage() {
             {walletAddress ? (
               <p className="font-mono text-xs text-slate-300 break-all">{walletAddress}</p>
             ) : (
-              <p className="text-xs text-slate-600">Not yet created — visit your dashboard to initialise.</p>
+              <p className="text-xs text-slate-600">Creating wallet…</p>
             )}
           </div>
 
