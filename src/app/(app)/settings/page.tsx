@@ -77,10 +77,11 @@ export default function SettingsPage() {
 
         {/* Wallet */}
         <section className="bg-slate-900 border border-slate-800 rounded-xl p-5 space-y-4">
-          <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Merchant Wallet</h2>
+          <h2 className="text-xs font-semibold uppercase tracking-widest text-slate-400">Treasury Wallet</h2>
 
           <div>
-            <p className="text-xs text-slate-500 mb-1">Receiving address (Base · USDC)</p>
+            <p className="text-xs text-slate-500 mb-1">Receiving address</p>
+            <p className="text-xs text-slate-600 mb-2">All invoice payments are sent to this address on Base. USDC only.</p>
             {walletAddress ? (
               <p className="font-mono text-xs text-slate-300 break-all">{walletAddress}</p>
             ) : (
