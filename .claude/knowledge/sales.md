@@ -54,3 +54,10 @@ _(Append-only.)_
 - Context: Bridge support asked to confirm KYB entity name and submission email.
 - Sent from guillermo@portpagos.com via Resend. Confirmed Qorua (SIREN 943823955) operating as PortPagos, email guillermo@portpagos.com.
 - Next action: await Bridge response on KYB status — production API access is the unblocking outcome.
+
+### 2026-05-20 — Bridge KYB blocked: sole_proprietorship_too_many_ubos
+- Issue: duplicate beneficial owner entry (same name twice) from original KYB submission error.
+- Resolution requested: asked Bridge to delete the extra UBO via Option 1 (API endpoint on their end) since Guillermo has no API access yet.
+- Documents: Guillermo believes all documents were submitted — asked Bridge to confirm anything listed as missing.
+- Status: waiting for Bridge reply in ticket #152745.
+- Unblocks: production API access → fiat off-ramp → pilot payments.
