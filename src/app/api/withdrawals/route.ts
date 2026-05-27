@@ -1,7 +1,6 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabaseAdmin";
 import { getPrivyClient } from "@/lib/privy";
-import { ensureGasBalance } from "@/lib/gasFunder";
 import { encodeFunctionData, getAddress, isAddress } from "viem";
 import crypto from "crypto";
 
@@ -160,12 +159,6 @@ export async function POST(req: Request) {
       throw new Error("NEXT_PUBLIC_USDC_CONTRACT_ADDRESS is not configured");
     }
 
-    // Ensure merchant wallet has enough ETH for gas on Base.
-    // If below the threshold, the gas funder wallet automatically tops it up.
-    if (merchantProfile.wallet_address) {
-      await ensureGasBalance(merchantProfile.wallet_address);
-    }
-
     const privy = getPrivyClient();
     const amountUnits = amountToUsdcUnits(parsedAmount);
 
@@ -175,7 +168,8 @@ export async function POST(req: Request) {
       args: [getAddress(payoutWallet.address), amountUnits],
     });
 
-    // Send transaction from the merchant's Privy server wallet
+    // Send transaction from the merchant's Privy server wallet.
+    // Gas is sponsored by Privy (TEE-backed wallets, Base mainnet configured in dashboard).
     const { hash } = await privy.walletApi.ethereum.sendTransaction({
       walletId: merchantProfile.privy_wallet_id,
       caip2: "eip155:8453", // Base mainnet — must use caip2, not chainId
@@ -184,6 +178,7 @@ export async function POST(req: Request) {
         data: calldata,
         // value omitted — defaults to 0 for ERC-20 transfers (no ETH sent)
       },
+      sponsor: true,
     });
 
     // 5. Mark withdrawal as completed

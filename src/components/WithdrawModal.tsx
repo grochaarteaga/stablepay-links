@@ -45,6 +45,8 @@ export function WithdrawModal({
   const [walletName, setWalletName] = useState("");
   const [walletAddress, setWalletAddress] = useState("");
 
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   // Result state
   const [txHash, setTxHash] = useState<string | null>(null);
   const [failureMessage, setFailureMessage] = useState("");
@@ -118,12 +120,14 @@ export function WithdrawModal({
   }
 
   async function handleConfirmWithdrawal() {
+    if (isSubmitting) return;
     setError("");
 
     if (!selectedWallet) { setError("Please select a wallet."); return; }
     if (parsedAmount <= 0) { setError("Please enter an amount."); return; }
     if (parsedAmount > balance) { setError("Amount exceeds available balance."); return; }
 
+    setIsSubmitting(true);
     setStep("processing");
 
     const { data: { session } } = await supabase.auth.getSession();
@@ -494,7 +498,8 @@ export function WithdrawModal({
                 </button>
                 <button
                   onClick={handleConfirmWithdrawal}
-                  className="flex-1 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-sm font-medium transition-colors"
+                  disabled={isSubmitting}
+                  className="flex-1 py-2.5 rounded-lg bg-green-600 hover:bg-green-500 text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Confirm withdrawal
                 </button>

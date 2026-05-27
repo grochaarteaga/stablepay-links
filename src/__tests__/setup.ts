@@ -1,5 +1,4 @@
 // Global env vars used across tests – matches .env.local values
-process.env.WALLET_ENCRYPTION_SECRET = "test-encryption-secret-32chars!!";
 process.env.ALCHEMY_WEBHOOK_SECRET = "super-long-random-string";
 process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
