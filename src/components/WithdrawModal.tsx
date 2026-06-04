@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import { isAddress, getAddress } from "viem";
 
@@ -12,12 +12,16 @@ type PayoutWallet = {
 };
 
 type Step =
+  | "method-select"
   | "wallet-select"
   | "add-wallet"
   | "review"
   | "processing"
   | "success"
-  | "failed";
+  | "failed"
+  | "transak-widget"
+  | "transak-processing"
+  | "transak-success";
 
 const QUICK_PERCENTAGES = [25, 50, 75, 100];
 
@@ -34,7 +38,7 @@ export function WithdrawModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
-  const [step, setStep] = useState<Step>("wallet-select");
+  const [step, setStep] = useState<Step>("method-select");
   const [wallets, setWallets] = useState<PayoutWallet[]>([]);
   const [selectedWalletId, setSelectedWalletId] = useState<string>("");
   const [amount, setAmount] = useState<string>("");
@@ -50,6 +54,18 @@ export function WithdrawModal({
   // Result state
   const [txHash, setTxHash] = useState<string | null>(null);
   const [failureMessage, setFailureMessage] = useState("");
+
+  // Transak off-ramp state
+  const [transakWidgetUrl, setTransakWidgetUrl] = useState<string>("");
+  const [transakPartnerOrderId, setTransakPartnerOrderId] = useState<string>("");
+  const iframeRef = useRef<HTMLIFrameElement>(null);
+  const executeCalledRef = useRef(false);
+  const orderCreatedRef = useRef(false);
+
+  const TRANSAK_ORIGIN =
+    process.env.NEXT_PUBLIC_TRANSAK_ENVIRONMENT === "staging"
+      ? "https://global-stg.transak.com"
+      : "https://global.transak.com";
 
   const selectedWallet = wallets.find((w) => w.id === selectedWalletId) ?? null;
   const parsedAmount = parseFloat(amount) || 0;
@@ -73,6 +89,117 @@ export function WithdrawModal({
       }
     }
   }
+
+  async function handleOpenTransakWidget() {
+    setError("");
+    const parsedAmt = parseFloat(amount) || 0;
+    if (parsedAmt <= 0) { setError("Please enter an amount."); return; }
+    if (parsedAmt > balance) { setError("Amount exceeds available balance."); return; }
+
+    setLoading(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) { setLoading(false); window.location.href = "/login?reason=auth"; return; }
+
+    const res = await fetch("/api/transak/create-widget-url", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify({ amount: parsedAmt }),
+    });
+
+    const data = await res.json();
+    setLoading(false);
+
+    if (!res.ok) {
+      setError(data.error || "Failed to open off-ramp. Please try again.");
+      return;
+    }
+
+    setTransakWidgetUrl(data.widgetUrl);
+    setTransakPartnerOrderId(data.partnerOrderId);
+    executeCalledRef.current = false;
+    orderCreatedRef.current = false;
+    setStep("transak-widget");
+  }
+
+  // Listen for postMessages from the Transak widget iframe.
+  // C2: validate e.origin before trusting any event.
+  // L2: executeCalledRef guards against ORDER_CREATED firing twice.
+  useEffect(() => {
+    if (step !== "transak-widget") return;
+
+    async function handleMessage(e: MessageEvent) {
+      // C2 — reject messages from any origin other than the Transak widget
+      if (e.origin !== TRANSAK_ORIGIN) return;
+      if (!e.data?.event_id) return;
+
+      if (e.data.event_id === "TRANSAK_ORDER_CREATED") {
+        // L2 — guard against duplicate fires
+        if (executeCalledRef.current) return;
+        executeCalledRef.current = true;
+        orderCreatedRef.current = true;
+
+        const orderData = e.data.data;
+        const depositAddress: string = orderData?.depositWalletAddress ?? orderData?.depositAddress ?? "";
+
+        // H1 — use the user-confirmed amount from React state, not the postMessage payload
+        const confirmedAmount = parseFloat(amount);
+
+        if (!depositAddress) {
+          setFailureMessage("Could not get deposit address from Transak.");
+          setStep("failed");
+          return;
+        }
+
+        setStep("transak-processing");
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setLoading(false); // L1
+          window.location.href = "/login?reason=auth";
+          return;
+        }
+
+        const res = await fetch("/api/transak/execute", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${session.access_token}`,
+          },
+          body: JSON.stringify({
+            deposit_address: depositAddress,
+            amount: confirmedAmount,
+            partner_order_id: transakPartnerOrderId,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (!res.ok) {
+          setFailureMessage(data.error || "Failed to send USDC.");
+          setStep("failed");
+          return;
+        }
+
+        setStep("transak-success");
+        onSuccess();
+      }
+
+      if (e.data.event_id === "TRANSAK_ORDER_FAILED") {
+        setFailureMessage("Transak order failed. Your balance has not been affected.");
+        setStep("failed");
+      }
+
+      if (e.data.event_id === "TRANSAK_WIDGET_CLOSE") {
+        onClose();
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [step, transakPartnerOrderId, amount, TRANSAK_ORIGIN]);
 
   async function handleAddWallet(e: React.FormEvent) {
     e.preventDefault();
@@ -171,12 +298,16 @@ export function WithdrawModal({
   }
 
   const stepTitle: Record<Step, string> = {
-    "wallet-select": "Withdraw funds",
+    "method-select": "Withdraw funds",
+    "wallet-select": "Withdraw to wallet",
     "add-wallet": "Add payout wallet",
     review: "Review withdrawal",
     processing: "Processing...",
     success: "Withdrawal submitted",
     failed: "Withdrawal failed",
+    "transak-widget": "Withdraw to bank",
+    "transak-processing": "Sending USDC...",
+    "transak-success": "Off-ramp initiated",
   };
 
   return (
@@ -210,6 +341,85 @@ export function WithdrawModal({
         </div>
 
         <div className="px-6 py-5">
+
+          {/* ── Step: method-select ─────────────────────── */}
+          {step === "method-select" && (
+            <div className="space-y-5">
+              <p className="text-xs text-slate-400">
+                Available:{" "}
+                <span className="text-white font-medium">${balance.toFixed(2)} USDC</span>
+              </p>
+
+              <div>
+                <label className="block text-xs font-medium text-slate-400 mb-2">
+                  Amount (USDC)
+                </label>
+                <div className="flex gap-2 mb-2">
+                  {QUICK_PERCENTAGES.map((pct) => (
+                    <button
+                      key={pct}
+                      onClick={() => setAmount(((balance * pct) / 100).toFixed(2))}
+                      className="flex-1 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-xs hover:border-slate-500 transition-colors"
+                    >
+                      {pct}%
+                    </button>
+                  ))}
+                </div>
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">$</span>
+                  <input
+                    type="number"
+                    step="0.01"
+                    min="10"
+                    max={balance}
+                    value={amount}
+                    onChange={(e) => setAmount(e.target.value)}
+                    placeholder="0.00"
+                    className="w-full pl-7 pr-16 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm placeholder-slate-600 focus:outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500 transition-colors"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 text-xs">USDC</span>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="block text-xs font-medium text-slate-400 mb-1">
+                  Withdraw to
+                </label>
+                <button
+                  onClick={() => { setError(""); setStep("wallet-select"); }}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-700 hover:border-slate-500 text-left transition-colors flex items-center gap-3"
+                >
+                  <span className="text-lg">🔑</span>
+                  <div>
+                    <p className="text-sm font-medium">Crypto wallet</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Receive USDC on Base</p>
+                  </div>
+                </button>
+                <button
+                  onClick={handleOpenTransakWidget}
+                  disabled={loading}
+                  className="w-full px-4 py-3.5 rounded-xl border border-slate-700 hover:border-blue-500/50 text-left transition-colors flex items-center gap-3 disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <span className="text-lg">🏦</span>
+                  <div>
+                    <p className="text-sm font-medium">Bank account (EUR)</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Convert USDC → EUR via SEPA</p>
+                  </div>
+                  {loading && (
+                    <svg className="ml-auto animate-spin w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+
+              {error && (
+                <div className="px-3 py-2.5 rounded-lg bg-red-900/30 border border-red-700/40 text-red-300 text-sm">
+                  {error}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* ── Step: wallet-select ─────────────────────── */}
           {step === "wallet-select" && (
@@ -253,6 +463,12 @@ export function WithdrawModal({
                       className="w-full px-4 py-2 rounded-lg border border-dashed border-slate-700 text-slate-500 hover:text-slate-300 hover:border-slate-500 text-xs transition-colors"
                     >
                       + Add another wallet
+                    </button>
+                    <button
+                      onClick={() => { setStep("method-select"); setError(""); }}
+                      className="w-full px-4 py-2 rounded-lg text-slate-600 hover:text-slate-400 text-xs transition-colors"
+                    >
+                      ← Back
                     </button>
                   </div>
                 )}
@@ -649,6 +865,72 @@ export function WithdrawModal({
                   Try again
                 </button>
               </div>
+            </div>
+          )}
+
+          {/* ── Step: transak-widget ────────────────────── */}
+          {step === "transak-widget" && transakWidgetUrl && (
+            <div className="space-y-3">
+              <p className="text-xs text-slate-400">
+                Complete your KYC and enter your IBAN in the form below. Once confirmed, USDC will be sent automatically.
+              </p>
+              <iframe
+                ref={iframeRef}
+                src={transakWidgetUrl}
+                allow="camera;microphone;payment;clipboard-write"
+                className="w-full rounded-xl border border-slate-700"
+                style={{ height: "560px" }}
+              />
+              {/* L3: disable cancel once ORDER_CREATED has fired — execute may already be in flight */}
+              {!orderCreatedRef.current && (
+                <button
+                  onClick={() => { setStep("method-select"); setError(""); setTransakWidgetUrl(""); }}
+                  className="w-full py-2 rounded-lg bg-slate-800 border border-slate-700 text-xs text-slate-400 hover:text-slate-300 transition-colors"
+                >
+                  Cancel
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* ── Step: transak-processing ─────────────────── */}
+          {step === "transak-processing" && (
+            <div className="py-8 text-center space-y-4">
+              <div className="inline-flex w-12 h-12 items-center justify-center rounded-full bg-blue-600/10 border border-blue-600/20">
+                <svg className="animate-spin w-5 h-5 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Sending USDC to Transak...</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Sending ${parseFloat(amount).toFixed(2)} USDC for EUR conversion
+                </p>
+              </div>
+              <p className="text-xs text-slate-600">Do not close this window.</p>
+            </div>
+          )}
+
+          {/* ── Step: transak-success ────────────────────── */}
+          {step === "transak-success" && (
+            <div className="py-4 text-center space-y-4">
+              <div className="inline-flex w-14 h-14 items-center justify-center rounded-full bg-green-600/10 border border-green-600/20">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400">
+                  <polyline points="20 6 9 17 4 12" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-base font-semibold text-white">Off-ramp initiated</p>
+                <p className="text-sm text-slate-400 mt-1">
+                  USDC sent to Transak. EUR will arrive in your bank via SEPA within 1–3 business days.
+                </p>
+              </div>
+              <button
+                onClick={onClose}
+                className="w-full py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-medium hover:bg-slate-700 transition-colors"
+              >
+                Close
+              </button>
             </div>
           )}
 
