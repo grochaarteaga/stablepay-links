@@ -40,7 +40,7 @@ export default function LegalPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">3. Services</h3>
-                  <p>PortPagos provides an orchestration layer for business-to-business payments using USD-backed stablecoin infrastructure. We facilitate the creation of payment links, invoice management, and settlement via licensed financial partners. PortPagos does not itself hold money transmission licenses and does not custody funds. All financial activity is processed by regulated third-party partners including Bridge and Circle.</p>
+                  <p>PortPagos provides an orchestration layer for business-to-business payments using USD-backed stablecoin infrastructure. We facilitate the creation of payment links, invoice management, and settlement via licensed financial partners. PortPagos does not itself hold money transmission licenses and does not custody funds. All financial activity is processed by regulated third-party partners including Transak and Circle.</p>
                 </div>
 
                 <div>
@@ -89,7 +89,7 @@ export default function LegalPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">Data sharing</h3>
-                  <p>We share data with our regulated financial partners (Bridge, Circle) as necessary to process transactions. We may share data with law enforcement or regulators when legally required. All third-party partners are bound by data processing agreements and applicable data protection law.</p>
+                  <p>We share data with our regulated financial partners (Transak, Circle) as necessary to process transactions. We may share data with law enforcement or regulators when legally required. All third-party partners are bound by data processing agreements and applicable data protection law.</p>
                 </div>
 
                 <div>
@@ -121,7 +121,7 @@ export default function LegalPage() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">Nature of service</h3>
-                  <p>PortPagos is a payment orchestration platform. We do not hold a money transmission licence and do not custody client funds. All regulated financial activity — including money transmission, conversion, and custody — is performed by our licensed partners: Bridge (money services) and Circle (USDC issuance).</p>
+                  <p>PortPagos is a payment orchestration platform. We do not hold a money transmission licence and do not custody client funds. All regulated financial activity — including money transmission, conversion, and custody — is performed by our licensed partners: Transak (money services) and Circle (USDC issuance).</p>
                 </div>
 
                 <div>

@@ -42,7 +42,7 @@ const pillars = [
       "Immutable ledger — entries cannot be updated or deleted, enforced at the database level by triggers",
       "Idempotency keys on all ledger writes prevent double-crediting from duplicate webhooks",
       "Materialised balance table maintained atomically by database triggers — no balance is ever computed from a mutable scan",
-      "HMAC-SHA256 signature verification on all inbound webhooks (Alchemy, Bridge)",
+      "HMAC-SHA256 signature verification on all inbound webhooks (Alchemy, Transak)",
       "Unique index on transaction hash prevents replay attacks",
     ],
   },
@@ -55,7 +55,7 @@ const pillars = [
     ),
     items: [
       "PortPagos never custodies customer funds",
-      "Fiat funds held by Bridge, a licensed money services business",
+      "Fiat conversion handled by Transak, a licensed and regulated fiat-to-crypto provider",
       "USDC held in self-custodied wallets on Base mainnet — cryptographically controlled by the account holder",
       "USDC issued by Circle, backed 1:1 by USD reserves independently attested monthly",
       "On-chain settlement is final and verifiable on a public blockchain",
@@ -71,7 +71,7 @@ const pillars = [
     items: [
       "KYB (Know Your Business) verification required for all merchant accounts",
       "KYC verification performed for individual users",
-      "AML screening on all transactions via Bridge's compliance infrastructure",
+      "AML screening on all transactions via Transak's compliance infrastructure",
       "Sanctions screening against OFAC, EU, and UN lists",
       "Transaction records retained for 5 years in compliance with AML regulations",
     ],
@@ -149,7 +149,7 @@ export default function SecurityPage() {
               <div className="text-center md:pl-10">
                 <p className="text-2xl font-bold text-green-400">Licensed</p>
                 <p className="mt-1 text-sm text-slate-400">Financial partners</p>
-                <p className="mt-1 text-xs text-slate-600">Bridge + Circle</p>
+                <p className="mt-1 text-xs text-slate-600">Transak + Circle</p>
               </div>
               <div className="text-center md:pl-10">
                 <p className="text-2xl font-bold text-green-400">GDPR</p>

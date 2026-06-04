@@ -1,5 +1,5 @@
 const partners = [
-  { name: "Bridge", desc: "Fiat rails" },
+  { name: "Transak", desc: "Fiat rails" },
   { name: "Base", desc: "Settlement layer" },
   { name: "Circle", desc: "USDC issuer" },
   { name: "Privy", desc: "Wallet security" },

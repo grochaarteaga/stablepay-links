@@ -32,7 +32,7 @@ const cards = [
   {
     Icon: ShieldIcon,
     title: "Regulated partners only",
-    desc: "Every financial service in PortPagos is provided by licensed and regulated entities. Bridge holds money transmission licences. USDC is issued by Circle, a regulated financial institution.",
+    desc: "Every financial service in PortPagos is provided by licensed and regulated entities. Transak holds EU and FCA licences for fiat conversion. USDC is issued by Circle, a regulated financial institution.",
   },
   {
     Icon: BadgeCheckIcon,
