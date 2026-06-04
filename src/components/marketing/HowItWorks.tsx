@@ -21,7 +21,7 @@ const steps = [
     number: "04",
     title: "Funds settle in minutes",
     desc: "Money arrives in your PortPagos balance within 2 minutes.",
-    detail: "Withdraw to your bank account whenever you want.",
+    detail: "Withdraw to your bank account via SEPA whenever you want.",
   },
 ];
 
