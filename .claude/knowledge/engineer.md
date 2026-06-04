@@ -18,7 +18,7 @@
 | Chain | Base mainnet | |
 | Token | USDC (ERC-20) | 6 decimals, canonical USDC contract |
 | Chain monitoring | Alchemy webhooks | Must be idempotent |
-| Fiat on-ramp | Bridge API | |
+| Fiat on/off-ramp | Transak API | Replaced Bridge (KYB rejected 2026-06-03) |
 | Email | Resend | |
 | Tests | Vitest | See `vitest.config.ts` |
 | Lint | ESLint | See `eslint.config.mjs` |
@@ -49,11 +49,22 @@ _(Append discovered traps here so nobody relearns them.)_
 
 - Tailwind v4 doesn't use `tailwind.config.js` — theme tokens live in `globals.css` under `@theme`
 - Alchemy webhooks can deliver multiple times — always check ledger idempotency keys
+- Transak widget is not headless for off-ramp (SELL) — must use iframe/SDK, not REST API
+- Transak auth is two-step: POST `/partners/api/v2/refresh-token` (api-secret header) → get `accessToken` → use as `access-token` header on `/api/v2/auth/session`
+- Admin billing route `/admin/billing` is protected by `ADMIN_USER_ID` env var — uses `supabaseAdmin` (service role) to read across all merchants
+- `withdrawals.wallet_id` is nullable — fiat off-ramp (Transak) withdrawals have no payout wallet
 
-## Migration runbook (local)
+## Staging environment
+
+- **Branch:** `staging` → auto-deploys to Vercel Preview with staging Supabase
+- **Staging Supabase:** `portpagos-staging` (ref: `ygrjqjwptvnffaysjgax`)
+- **Workflow:** build on `main` locally → merge to `staging` → push → test on Vercel preview URL → ship to `main`
+- **Transak:** staging branch automatically uses Transak staging keys (`NEXT_PUBLIC_TRANSAK_ENVIRONMENT=staging`)
+
+## Migration runbook
 
 1. Write migration in `supabase/migrations/NNN_description.sql`
-2. Test locally with Supabase CLI or by running against a dev project
+2. Test on **staging Supabase** first (SQL editor at `portpagos-staging`)
 3. Verify rollback path (or document that it's forward-only)
 4. Hand off to **devops** for prod application
 

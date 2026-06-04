@@ -12,11 +12,20 @@
 
 ## Environments
 
-| Name | Where | Notes |
-|---|---|---|
-| Local | `.env.local` (gitignored) | Dev work only |
-| Preview | Vercel PR deploys | Branches into isolated envs |
-| Production | Vercel `main` | Live customers |
+| Name | Branch | Supabase project | Notes |
+|---|---|---|---|
+| Local | — | prod (uses `.env.local`) | Dev work only — swap to staging keys when testing features |
+| Staging | `staging` | `portpagos-staging` (`ygrjqjwptvnffaysjgax`) | Auto-deploys to Vercel Preview on push to `staging` branch |
+| Production | `main` | `qqhuuvunzblsokcwhmfy` | Live — auto-deploys from `main` |
+
+### Staging workflow
+1. All new features built and QA-passed on `main` locally
+2. Before shipping to prod: `git checkout staging && git merge main && git push`
+3. Vercel auto-builds a preview URL with staging Supabase — test here
+4. If staging passes: `git checkout main && git push origin main`
+
+**Staging Supabase project:** `portpagos-staging`
+**Staging Vercel env vars:** scoped to `preview` + `staging` branch only — Supabase URL/keys, `NEXT_PUBLIC_TRANSAK_ENVIRONMENT=staging`
 
 ## Env var inventory
 
@@ -29,7 +38,10 @@ See `.env.example` for the canonical shape. Expected keys include:
 - `SUPABASE_SERVICE_ROLE_KEY` (server-only, sensitive)
 - Privy keys (app id + client id)
 - Alchemy API key / webhook signing secret
-- Bridge API credentials
+- Transak API key + secret key (`TRANSAK_API_KEY`, `TRANSAK_SECRET_KEY`)
+- `NEXT_PUBLIC_TRANSAK_ENVIRONMENT` (`staging` or `production`)
+- `ADMIN_USER_ID` (Guillermo's Supabase user ID — protects `/admin/billing`)
+- `BILLING_EXEMPT_IDS` (comma-separated user IDs exempt from billing fees)
 - Resend API key
 - Base RPC endpoint
 
@@ -58,7 +70,7 @@ _(Shipper should diff `.env.example` on each task and update this list.)_
 - [ ] No secrets committed (grep for API keys, tokens, passwords in diff)
 
 ### Database migration (prod)
-1. Migration tested on dev Supabase project
+1. Migration tested on **staging Supabase** first (`portpagos-staging`)
 2. Diff reviewed with **engineer**
 3. Schedule low-traffic window if destructive
 4. Apply via Supabase dashboard SQL editor or CLI
@@ -89,6 +101,28 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with baseline runbooks (deploy, migration, rollback, env var) and env var inventory skeleton.
 - TODO: first devops task should read actual `.env.example` and populate the inventory exhaustively.
+
+### 2026-06-04 — Staging environment set up
+- Created `portpagos-staging` Supabase project (ref: `ygrjqjwptvnffaysjgax`, eu-west-2).
+- All 10 tables + triggers + RLS policies applied via SQL editor (000_base_schema.sql + migrations 001–005).
+- `staging` git branch created and pushed. Vercel Preview scoped to this branch with staging Supabase keys + `NEXT_PUBLIC_TRANSAK_ENVIRONMENT=staging`.
+- Pre-ship workflow: merge main → staging → push → test on Vercel preview URL → merge staging → main.
+
+### 2026-06-04 — Transak replaces Bridge; billing dashboard + payer fiat-pay shipped
+- Bridge KYB rejected. All Bridge references replaced with Transak across codebase and copy.
+- New routes: `/api/transak/create-widget-url` (merchant off-ramp), `/api/transak/execute` (USDC send), `/api/transak/create-onramp-url` (payer fiat-pay), `/api/webhooks/transak`.
+- New migrations: `005_transak_offramp.sql` (partner_order_id + type columns on withdrawals).
+- Admin billing dashboard at `/admin/billing` — protected by `ADMIN_USER_ID` env var.
+- Payer bank transfer activated on `/pay/[invoiceId]` for invoices ≥ $30.
+
+### 2026-05-27 — Replace gas funder key with Privy gas sponsorship
+- Commit `b0fdccf` shipped to `origin/main`. 10 files changed (15 insertions, 274 deletions).
+- Changes: `sponsor: true` on Privy `sendTransaction`; deleted `gasFunder.ts`, `sweep.ts`, `encryption.ts`; removed `GAS_FUNDER_PRIVATE_KEY` + `WALLET_ENCRYPTION_SECRET` from `env.d.ts` / `.env.example` / `.env.local`; added `isSubmitting` double-submit guard on `WithdrawModal`; migration `004_balances_non_negative.sql` (`CHECK amount >= 0` on balances — applied to prod directly via Supabase SQL editor).
+- QA sign-off: YES — QA agent ran full punch list this session; 2 blocking issues found and fixed before commit.
+- Tests: 37/37 green. TypeScript: clean.
+- Vercel build: READY.
+- Env var cleanup pending: `GAS_FUNDER_PRIVATE_KEY` and `WALLET_ENCRYPTION_SECRET` still present in Vercel environment variables — no longer referenced by any code, safe to delete from Vercel dashboard at next opportunity.
+- Smoke-check items: withdrawal happy path, double-submit guard (rapid double-click blocked), no 500s from deleted modules.
 
 ### 2026-04-24 — UX writing pass + agent system ship
 - SHAs shipped to origin/main: `661c805..3749f47` (7 commits). Final HEAD: `3749f47`.
