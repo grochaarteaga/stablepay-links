@@ -31,7 +31,16 @@ type Step =
   | "blocked"
   | "method-select"
   | "crypto"
+  | "bank"
+  | "bank-processing"
   | "paid";
+
+const TRANSAK_ORIGIN =
+  process.env.NEXT_PUBLIC_TRANSAK_ENVIRONMENT === "staging"
+    ? "https://global-stg.transak.com"
+    : "https://global.transak.com";
+
+const MIN_BANK_TRANSFER_AMOUNT = 30;
 
 // Statuses that prevent any new payment from being initiated
 const BLOCKED_STATUSES = ["paid", "cancelled", "expired", "failed"];
@@ -120,6 +129,12 @@ export default function PayInvoicePage() {
   const pollRef = useRef<NodeJS.Timeout | null>(null);
   const pollCount = useRef(0);
 
+  // Bank transfer (Transak on-ramp) state
+  const [bankWidgetUrl, setBankWidgetUrl] = useState<string>("");
+  const [bankLoading, setBankLoading] = useState(false);
+  const [bankError, setBankError] = useState<string | null>(null);
+  const bankOrderCreatedRef = useRef(false);
+
   // ── Fetch invoice ────────────────────────────────────────
 
   const loadInvoice = useCallback(async () => {
@@ -181,6 +196,66 @@ export default function PayInvoicePage() {
 
     return () => { if (pollRef.current) clearInterval(pollRef.current); };
   }, [txHash, isPolling, loadInvoice]);
+
+  // ── Bank transfer: open Transak on-ramp widget ───────────
+
+  async function handleBankTransfer() {
+    if (!invoice) return;
+    setBankError(null);
+    setBankLoading(true);
+    bankOrderCreatedRef.current = false;
+
+    try {
+      const res = await fetch("/api/transak/create-onramp-url", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ invoiceId: invoice.id }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setBankError(data.error || "Failed to open payment. Please try again.");
+        setBankLoading(false);
+        return;
+      }
+      setBankWidgetUrl(data.widgetUrl);
+      setBankLoading(false);
+      setStep("bank");
+    } catch {
+      setBankError("Payment service unavailable. Please try again.");
+      setBankLoading(false);
+    }
+  }
+
+  // Listen for postMessages from the Transak on-ramp widget
+  useEffect(() => {
+    if (step !== "bank") return;
+
+    function handleMessage(e: MessageEvent) {
+      if (e.origin !== TRANSAK_ORIGIN) return;
+      if (!e.data?.event_id) return;
+
+      if (e.data.event_id === "TRANSAK_ORDER_CREATED") {
+        if (bankOrderCreatedRef.current) return;
+        bankOrderCreatedRef.current = true;
+        // Transak will now send USDC to the merchant wallet.
+        // Switch to processing state and poll for invoice status.
+        setStep("bank-processing");
+        setIsPolling(true);
+      }
+
+      if (e.data.event_id === "TRANSAK_ORDER_FAILED") {
+        setBankError("Payment failed. Please try again or use a different method.");
+        setStep("method-select");
+      }
+
+      if (e.data.event_id === "TRANSAK_WIDGET_CLOSE") {
+        if (!bankOrderCreatedRef.current) setStep("method-select");
+      }
+    }
+
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [step]);
 
   // ── Payment handlers ─────────────────────────────────────
 
@@ -355,18 +430,46 @@ export default function PayInvoicePage() {
                 <ChevronRight />
               </button>
 
-              {/* Bank transfer — coming soon */}
-              <div className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-slate-800 opacity-40 cursor-not-allowed">
-                <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
-                    <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
-                  </svg>
+              {/* Bank transfer — active if amount >= minimum */}
+              {invoice.amount >= MIN_BANK_TRANSFER_AMOUNT ? (
+                <button
+                  onClick={handleBankTransfer}
+                  disabled={bankLoading}
+                  className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-slate-700 hover:border-slate-500 hover:bg-slate-800/40 transition-all text-left group disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-green-900/30 border border-green-800/40 flex items-center justify-center flex-shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-400">
+                      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium">Pay by bank transfer</p>
+                    <p className="text-xs text-slate-500 mt-0.5">SEPA · EUR · Powered by Transak</p>
+                  </div>
+                  {bankLoading
+                    ? <svg className="animate-spin w-4 h-4 text-slate-400 flex-shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" /></svg>
+                    : <ChevronRight />
+                  }
+                </button>
+              ) : (
+                <div className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-slate-800 opacity-40 cursor-not-allowed">
+                  <div className="w-10 h-10 rounded-lg bg-slate-800 flex items-center justify-center flex-shrink-0">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-slate-500">
+                      <rect x="3" y="3" width="18" height="18" rx="2" /><path d="M3 9h18M9 21V9" />
+                    </svg>
+                  </div>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-slate-500">Pay by bank transfer</p>
+                    <p className="text-xs text-slate-600 mt-0.5">Minimum ${MIN_BANK_TRANSFER_AMOUNT} required</p>
+                  </div>
                 </div>
-                <div className="flex-1">
-                  <p className="text-sm font-medium text-slate-500">Pay by bank transfer</p>
-                  <p className="text-xs text-slate-600 mt-0.5">Wire · SWIFT · Coming soon</p>
+              )}
+
+              {bankError && (
+                <div className="px-3 py-2.5 rounded-lg bg-red-900/30 border border-red-700/40 text-red-300 text-sm">
+                  {bankError}
                 </div>
-              </div>
+              )}
 
               {/* Card — coming soon */}
               <div className="w-full flex items-center gap-4 px-4 py-4 rounded-xl border border-slate-800 opacity-40 cursor-not-allowed">
@@ -461,6 +564,40 @@ export default function PayInvoicePage() {
             </div>
           )}
 
+
+          {/* ── Step: Bank transfer widget ─────────────── */}
+          {step === "bank" && bankWidgetUrl && (
+            <div className="space-y-3">
+              <BackButton onClick={() => { setStep("method-select"); setBankWidgetUrl(""); bankOrderCreatedRef.current = false; }} />
+              <p className="text-xs text-slate-400">
+                Complete your identity verification and SEPA payment below. Funds will be received by the merchant automatically.
+              </p>
+              <iframe
+                src={bankWidgetUrl}
+                allow="camera;microphone;payment;clipboard-write"
+                className="w-full rounded-xl border border-slate-700"
+                style={{ height: "560px" }}
+              />
+            </div>
+          )}
+
+          {/* ── Step: Bank transfer processing ─────────── */}
+          {step === "bank-processing" && (
+            <div className="py-8 text-center space-y-4">
+              <div className="inline-flex w-12 h-12 items-center justify-center rounded-full bg-green-600/10 border border-green-600/20">
+                <svg className="animate-spin w-5 h-5 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                  <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83" />
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-white">Payment in progress</p>
+                <p className="text-xs text-slate-500 mt-1">
+                  Transak is processing your EUR payment and converting to USDC.
+                </p>
+              </div>
+              <p className="text-xs text-slate-600">This can take a few minutes. You can close this page.</p>
+            </div>
+          )}
 
           {/* ── Step: Crypto confirmed ──────────────────── */}
           {step === "paid" && (
