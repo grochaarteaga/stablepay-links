@@ -28,7 +28,9 @@ _(Last updated 2026-04-30. Pre-revenue, Bridge API production access submitted, 
 5. [ ] Minimum merchant dashboard: USDC balance + paid invoice list (no analytics, no export yet) — S scope
 
 **Soon (after first pilot payment)**
-- Bridge fiat off-ramp UX (withdrawal / sweep flow)
+- Payer fiat-pay via Transak on-ramp (spec done 2026-06-04, ready to build)
+- Pilot consumption monitoring + billing dashboard — Guillermo cannot charge pilots without this
+- Staging environment (Supabase + Vercel) — required before first real pilot merchant
 - Invoice PDF / export for merchant accounting
 
 **Explicit non-goals right now**
@@ -66,6 +68,30 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 ### 2026-04-24 — Knowledge base initialized
 - Seeded with PortPagos product context, ICP, initial roadmap.
 - TODO: fill in real current roadmap from `docs/features/` on next PM task.
+
+### 2026-05-20 — Intake: AI agent team public page
+- Recommendation: Wait. Landing page optimization is an explicit non-goal until pilots are live; this page serves a secondary/investor audience, not the port agents we need to close.
+- Risk flagged: conservative buyers (port agent CFOs) may read "AI agents" as "no real team" — trust penalty. Eng days consumed would compete with Alchemy webhook fix and secrets rotation, both pilot-blocking.
+- If Guillermo overrides: designer should lead with outcomes the team produces, not AI model names. Marketer must frame as "AI-augmented operations," not "AI company." No crypto/web3 vocabulary.
+- Follow-up: revisit after first pilot payment is live and investor conversations begin.
+
+### 2026-05-20 — Sidebar nav review
+- Guillermo implemented left sidebar (224px desktop, hamburger mobile): logo, nav items, settings/logout, company name/email. Top navbar removed. New /settings page with email, company name, wallet address, password change link.
+- PM verdict: structurally correct decision, right pattern for a growing dashboard. No roadmap impact — does not move pilot gate items.
+- Two gaps flagged: (1) nav is passive, no urgency signals for outstanding invoices; (2) "wallet address" label on settings page is ambiguous — should read "Receiving address" or "Treasury wallet" with a one-line explanation.
+- Follow-up: route wallet address label copy to designer as a UX writing micro-task. No new roadmap items added.
+
+### 2026-06-04 — Spec: pilot billing dashboard
+- Drafted spec for internal operator billing view at /admin/billing.
+- Scope: S (~4h eng). All data exists in invoices + ledger_entries + profiles — pure read aggregation, no new tables.
+- 4 open questions: admin protection method, fee basis, pilot free period, billing cycle.
+- Saved to `docs/specs/billing-dashboard.md`. Flagged for designer (layout + copy format) and engineer (service role safety, FK confirmation).
+
+### 2026-06-04 — Spec: payer fiat-pay via Transak on-ramp
+- Drafted spec for activating "Pay by bank transfer" on the invoice payment page using Transak BUY flow.
+- Scope: S (~4h eng). Reuses off-ramp backend pattern already built.
+- 4 open questions requiring Guillermo input before build: fee ownership, FX display, minimum invoice amount, referrerDomain for public route.
+- Saved to `docs/specs/payer-fiat-pay-transak.md`. Flagged for designer (UX states) and engineer (public route auth) review.
 
 ### 2026-04-30 — Roadmap reprioritized for pilot gate
 - Context: pre-revenue, Bridge API production access submitted, legal entity is Qorua (French micro-entreprise), strategic goal is 2-3 pilots with real USDC flows before fundraising.
