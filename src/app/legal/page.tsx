@@ -65,7 +65,7 @@ export default function LegalPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">8. Governing law</h3>
-                  <p>These Terms are governed by the laws of the Republic of Ireland, without regard to conflict of law principles. Any disputes shall be subject to the exclusive jurisdiction of the courts of Ireland.</p>
+                  <p>These Terms are governed by the laws of France, without regard to conflict of law principles. Any disputes shall be subject to the exclusive jurisdiction of the courts of Paris, France.</p>
                 </div>
               </div>
             </section>
@@ -89,7 +89,7 @@ export default function LegalPage() {
 
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">Data sharing</h3>
-                  <p>We share data with our regulated financial partners (Transak, Circle) as necessary to process transactions. We may share data with law enforcement or regulators when legally required. All third-party partners are bound by data processing agreements and applicable data protection law.</p>
+                  <p>We share data with our infrastructure and financial partners as necessary to operate the Platform: Privy (wallet provisioning and key management), Transak (fiat conversion), Circle (USDC), Alchemy (on-chain monitoring), Resend (transactional email), Supabase (database and authentication), and Vercel (hosting). We may share data with law enforcement or regulators when legally required. All third-party partners are bound by data processing agreements and applicable data protection law. You have the right to lodge a complaint with the CNIL (Commission Nationale de l&apos;Informatique et des Libertés) if you believe your data has been processed unlawfully.</p>
                 </div>
 
                 <div>
@@ -121,7 +121,7 @@ export default function LegalPage() {
               <div className="space-y-6">
                 <div>
                   <h3 className="text-sm font-semibold text-slate-200 mb-2">Nature of service</h3>
-                  <p>PortPagos is a payment orchestration platform. We do not hold a money transmission licence and do not custody client funds. All regulated financial activity — including money transmission, conversion, and custody — is performed by our licensed partners: Transak (money services) and Circle (USDC issuance).</p>
+                  <p>PortPagos is a payment orchestration platform. We do not hold a money transmission licence and do not custody client funds. Merchant wallets are provisioned and secured by Privy, a non-custodial wallet infrastructure provider — merchants retain full control of their keys. All regulated financial activity — including money transmission, conversion, and custody — is performed by our licensed partners: Transak (fiat conversion, EU and FCA licensed) and Circle (USDC issuance, regulated financial institution).</p>
                 </div>
 
                 <div>
