@@ -2,7 +2,9 @@
 
 > QA agent reads this before every review. Engineer reads this before every commit.
 > Format: Flow → Happy path → Failure paths → Edge cases → Automated coverage.
-> Keep updated as flows are added or changed.
+> Keep updated as flows are added or changed. Every new feature MUST be added here.
+>
+> **Automated coverage today (Vitest, 28 tests):** Alchemy webhook, generate-wallet, USDC helpers · plus reset-password + login (scripts) and auth E2E (Playwright). **Every payment / withdrawal / Transak / invoice / onboarding flow below is MANUAL-only** — re-running the suite does NOT yet regression-check them. Converting these to automated tests is the open regression priority (see §8–§10 especially).
 
 ---
 
@@ -175,7 +177,77 @@
 - [ ] Double-click withdraw → only one transaction sent
 
 ### Automated coverage
-- None yet — all manual
+- None yet — all manual (to-wallet withdrawal). Fiat off-ramp now via Transak — see §8.
+
+---
+
+## 8. Fiat off-ramp — merchant (Transak SELL)
+
+### Happy path
+1. Dashboard → Withdraw → choose the "to bank account (fiat)" option
+2. Transak SELL widget opens (iframe/SDK — **not** headless) pre-filled with the merchant amount
+3. Merchant completes Transak KYC + the SELL order
+4. `ORDER_COMPLETED` → `/api/transak/execute` sends USDC from the merchant wallet → withdrawal recorded as a debit
+
+### Failure paths
+- [ ] Transak KYB/KYC not approved → widget blocks the order, no debit written
+- [ ] `ORDER_FAILED` → withdrawal marked failed, reversal written (no funds lost)
+- [ ] Privy USDC send throws inside execute → catch path writes a reversal, status `failed`
+- [ ] Amount > balance → rejected before the widget opens
+
+### Edge cases
+- [ ] **Concurrent execute for the same `partner_order_id` → double-debit.** The idempotency SELECT+INSERT is non-atomic; the unique partial index (migration 005) throws 23505 but only AFTER the first debit. Fix path: `INSERT ... ON CONFLICT DO NOTHING`, or check the constraint before any ledger write. [CRITICAL]
+- [ ] **`amount` from postMessage (`orderData.cryptoAmount`) is not re-validated server-side** against the session amount stored at create-widget-url → a crafted/intercepted message can pass a higher amount to execute. [HIGH — must fix]
+- [ ] postMessage origin validated against `TRANSAK_ORIGIN` — reject a crafted `ORDER_CREATED` from a malicious origin
+- [ ] Double reversal between the execute catch path and an `ORDER_FAILED` webhook → guarded by idempotency_key `withdrawal:<id>:reversal` (both paths MUST use the same key — do not change)
+
+### Automated coverage
+- None yet — all manual. **HIGH-RISK GAP — top target for automated regression tests (part 3).**
+
+---
+
+## 9. Payer fiat-pay — on-ramp (Transak BUY)
+
+### Happy path
+1. Payer opens `/pay/[invoiceId]` (public, no auth) → chooses bank transfer / card
+2. `/api/transak/create-onramp-url` (reads the invoice via `supabaseAdmin`) returns a Transak BUY widget URL
+3. Payer pays fiat in the widget → Transak delivers USDC on-chain to the invoice wallet
+4. **The Alchemy webhook** detects the on-chain USDC → marks the invoice paid + credits the merchant (Alchemy is the source of truth)
+
+### Failure paths
+- [ ] Invoice amount < €30 (Transak minimum) → bank-transfer option hidden entirely
+- [ ] Invoice not found → 404
+- [ ] Transak KYB not approved → on-ramp option unavailable
+- [ ] Payer abandons the fiat payment → invoice stays pending, never a false "paid"
+
+### Edge cases
+- [ ] **Invoice is marked paid ONLY via the Alchemy webhook**, never from a Transak `ORDER_COMPLETED` alone (the USDC may not have settled on-chain yet)
+- [ ] `create-onramp-url` (supabaseAdmin) must expose ONLY the wallet address + amount — no other invoice/merchant data leakage on this public route
+- [ ] €29.99 invoice → option hidden; €30.00 → shown (boundary)
+- [ ] Payer pays, USDC lands, then re-opens the link → shows "already paid", no second on-ramp
+
+### Automated coverage
+- None yet — all manual. **HIGH-RISK GAP — part 3.**
+
+---
+
+## 10. Transak webhook (`/api/webhooks/transak`)
+
+### Happy path
+1. Transak POSTs a signed (JWT) lifecycle event
+2. Signature verified → order/withdrawal status updated idempotently → 200
+
+### Failure paths
+- [ ] Invalid / malformed JWT → currently returns 200 silently; must log a signature-verification failure DISTINCTLY from an idempotency skip (a crafted payload must not look like a processed event)
+- [ ] Unknown order reference → log + 200, no state change
+
+### Edge cases
+- [ ] Replay (same event twice) → idempotent, no double state change / double reversal
+- [ ] Out-of-order delivery (e.g. COMPLETED before PROCESSING) → handled, state not corrupted
+- [ ] Always returns 200 (prevents Transak auto-pausing the webhook) — but every error path still logs
+
+### Automated coverage
+- None yet — all manual. **HIGH-RISK GAP — part 3** (mirror the Alchemy `webhook.test.ts` pattern: signature verification, idempotency, replay).
 
 ---
 
@@ -186,5 +258,6 @@ For the feature changed, walk through:
 2. At least 2 failure paths
 3. Double-submit (click the primary button twice fast)
 4. Unauthenticated access to any new protected route
-5. Run `npm test` — all green
+5. Run `npm test` — all green (**full** suite — regression check, not just the new tests)
 6. Run `npx tsc --noEmit` — clean
+7. New flow added? Add it to this registry **and** an automated test for its high-risk use cases.
