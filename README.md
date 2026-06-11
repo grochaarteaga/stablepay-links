@@ -13,7 +13,7 @@ Instant settlement infrastructure for port agents and shipping companies. Mercha
 | Wallet auth | Privy |
 | On-chain | Base mainnet · USDC ERC-20 |
 | On-chain monitoring | Alchemy webhooks |
-| Fiat top-up | Bridge API |
+| Fiat on/off-ramp | Transak |
 | Email | Resend |
 | Styles | Tailwind CSS v4 |
 
@@ -86,15 +86,16 @@ Copy `.env.example` to `.env.local` and fill in every value.
 
 The Alchemy webhook must be an **Address Activity** webhook pointing at your merchants' invoice wallet addresses. Endpoint: `https://your-domain.com/api/webhooks/alchemy`
 
-### Bridge (fiat top-up)
+### Transak (fiat on/off-ramp)
 
 | Variable | Value |
 |---|---|
-| `BRIDGE_API_URL` | `https://api.bridge.xyz` |
-| `BRIDGE_API_KEY` | From your Bridge dashboard |
-| `BRIDGE_WEBHOOK_SECRET` | From your Bridge webhook configuration |
+| `TRANSAK_API_KEY` | From your Transak partner dashboard |
+| `TRANSAK_SECRET_KEY` | From your Transak partner dashboard (server-only) |
+| `NEXT_PUBLIC_TRANSAK_ENVIRONMENT` | `staging` or `production` |
+| `TRANSAK_WEBHOOK_SECRET` | From your Transak webhook configuration |
 
-Bridge webhook endpoint: `https://your-domain.com/api/webhooks/bridge`
+Transak webhook endpoint: `https://your-domain.com/api/webhooks/transak`
 
 ### WalletConnect
 
@@ -134,7 +135,7 @@ In Vercel → Project → Settings → Domains, add `portpagos.com` and follow t
 
 After your domain is live, update the webhook endpoint URLs in:
 - **Alchemy** dashboard → Webhooks → edit endpoint URL
-- **Bridge** dashboard → Webhooks → edit endpoint URL
+- **Transak** dashboard → Webhooks → edit endpoint URL
 
 ---
 
@@ -144,24 +145,22 @@ After your domain is live, update the webhook endpoint URLs in:
 src/
 ├── app/
 │   ├── (app)/                  # Authenticated merchant app
-│   │   ├── dashboard/          # Invoice management, balance, top-up
+│   │   ├── dashboard/          # Invoice management, balance, withdrawals
 │   │   └── pay/[invoiceId]/    # Public payment page
 │   ├── api/
 │   │   ├── contact/            # Demo request form → Resend email
 │   │   ├── invoices/           # Invoice CRUD + payment routes
-│   │   ├── topups/             # EUR→USDC top-up via Bridge
+│   │   ├── transak/            # Fiat on/off-ramp URL generation + execute
 │   │   ├── webhooks/
 │   │   │   ├── alchemy/        # On-chain USDC payment detection
-│   │   │   └── bridge/         # Fiat top-up lifecycle events
+│   │   │   └── transak/        # Fiat on/off-ramp lifecycle events
 │   │   └── withdrawals/        # USDC withdrawal to external wallet
 │   ├── contact/                # Book a demo page
 │   ├── legal/                  # Terms, privacy, regulatory notice
 │   └── security/               # Security overview page
 ├── components/
-│   ├── marketing/              # Landing page sections
-│   └── TopUpModal.tsx          # EUR→USDC top-up flow (7-step)
+│   └── marketing/              # Landing page sections
 └── lib/
-    ├── bridge.ts               # Bridge API client
     ├── supabaseAdmin.ts        # Service-role Supabase client
     └── usdc.ts                 # USDC contract ABI + helpers
 
@@ -190,7 +189,7 @@ supabase/
 npm test
 ```
 
-Tests cover the Bridge webhook handler (HMAC verification, all event types, idempotency).
+Tests cover webhook signature verification, ledger idempotency, and core payment/withdrawal flows.
 
 ---
 

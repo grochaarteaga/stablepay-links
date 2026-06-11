@@ -95,7 +95,7 @@ Logo (left). Links (center): Product, For Port Agents, For Shipping Companies, P
 
 ### 3. Partner / infrastructure logo strip
 Label above (small, uppercase, muted): **Built on enterprise-grade rails**
-Logos (grayscale, evenly spaced, centered): Bridge · Coinbase · Base · Circle · Privy
+Logos (grayscale, evenly spaced, centered): Coinbase · Base · Circle · Privy
 > Replace this list with your actual partner set before submitting.
 
 ### 4. The problem (3-column stat block)
@@ -146,7 +146,7 @@ Headline: **Enterprise-grade payment infrastructure.**
 Sub: The speed of a consumer payment app. The rails of a global financial network.
 
 Four cards (icon + short copy each):
-- **Regulated partners** — Settlement orchestrated through licensed providers including Bridge and Circle.
+- **Regulated partners** — Settlement orchestrated through licensed providers including Circle and Transak.
 - **KYC & KYB verified** — Every agent and payer verified before transacting.
 - **1:1 USD-backed** — Funds settle in fully-reserved, regulated stablecoins.
 - **Real-time audit trail** — Every payment timestamped, receipted, and exportable.

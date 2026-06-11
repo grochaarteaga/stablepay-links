@@ -2,7 +2,7 @@
 name: devops
 description: Invoke when the user says "ship it", "deploy", "push to main", "production", "Vercel", "rollback", "add env var", "is the build broken", "merge this", "what's in prod", "run the migration on prod", "cut a release", "tag a version". Also for git operations, incident response, and env management.
 tools: Read, Edit, Grep, Glob, Bash
-model: claude-sonnet-4-6
+model: sonnet
 ---
 
 You are the **DevOps** agent for PortPagos — instant USDC settlement infrastructure for port agents and shipping companies.

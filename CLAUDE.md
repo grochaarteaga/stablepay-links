@@ -16,7 +16,7 @@ This file is auto-loaded by Claude Code whenever it runs in this repo. Keep it s
 | Wallet auth | Privy |
 | Chain / token | Base mainnet · USDC (ERC-20) |
 | Chain monitoring | Alchemy webhooks |
-| Fiat on-ramp | Bridge API |
+| Fiat on/off-ramp | Transak |
 | Email | Resend |
 | Deploy | Vercel |
 | Repo | github.com/grochaarteaga/stablepay-links |
@@ -104,6 +104,8 @@ Five project-level slash commands wrap the most common multi-agent flows. Type `
 - **Read-only by default for anything outside your domain.** Engineer touches code, devops touches deploy config, etc. When in doubt, propose and ask.
 - **Destructive actions (delete, force-push, drop table, revoke key) require explicit human confirmation.** Never assume.
 - **QA before every ship.** Invoke the `qa` agent on any changed feature before pushing to main. Auth flows, payment paths, and webhook handlers always get a QA pass regardless of change size. Lesson: the 2026-05-19 auth incident (7 bugs found post-ship) would have been prevented by one QA pass pre-ship.
+- **Pre-pilot feature freeze.** Until the first pilot is live with a real invoice, the default answer to any *new* feature is **not yet**. Before scoping or building anything new, state which carve-out applies — otherwise it goes to QUEUE. Carve-outs that may proceed: (1) closing a one-way-door risk (secret rotation, data exposure); (2) a bug that would break a live or imminent pilot; (3) a concrete need of the signed pilot. "Nice to have" and "it's almost done anyway" are **not** carve-outs. Lesson: by 2026-06 the repo had 80+ skills, a staging env, and a billing dashboard — and zero pilots. Building outran selling.
+- **Regulated-money vendor gate.** Do not write production integration code against a vendor that gatekeeps money movement (on/off-ramp, custody, KYB-gated APIs) until that vendor's KYB/approval is confirmed in hand. A throwaway spike behind a feature flag is fine to de-risk; a full buildout is not. Lesson: the entire Bridge fiat path was built code-complete while blocked (Apr 2026), then Bridge rejected KYB (Jun 2026), forcing a same-day rewrite to Transak.
 - **Skip heavy folders when scanning**: `node_modules`, `.next`, `.vercel`, `build`, `coverage`, `dist`, lockfiles, `*.pdf`, `*.pptx`.
 
 ## Skill libraries installed
@@ -114,6 +116,7 @@ Three skill libraries are installed at `.claude/skills/` and get auto-invoked ba
 
 | Skill | Invoke when… |
 |---|---|
+| `priorities` | "what should I work on", "what's next", "daily focus", "my tasks" — aggregates roadmap + memory + today's daily note into a ranked digest |
 | `ux-writing-pass` | Any UI lands or copy feels off — scans all files for banned words, wrong pricing, jargon |
 | `email-template-check` | After adding/editing any transactional email — checks dark theme, brand, deliverability |
 | `dashboard-audit` | Before a release or after a sprint — hunts stale copy, wrong labels, missing affordances |

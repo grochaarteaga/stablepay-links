@@ -42,6 +42,7 @@ _(Expand as established. Promote patterns here when you notice them recurring.)_
 - Money amounts: integer minor units, never floats. USDC uses 6 decimals.
 - Dates: store as `timestamptz` in Postgres, render in user TZ in UI
 - File naming: kebab-case for files, PascalCase for React components
+- **Regulated-money vendor gate:** no production integration code against a vendor that gatekeeps money movement (on/off-ramp, custody, KYB-gated APIs) until that vendor's KYB/approval is confirmed in hand. A throwaway spike behind a feature flag is fine to de-risk; a full buildout is not. (Bridge lesson — built code-complete while blocked, then KYB rejected, forcing a same-day Transak rewrite.)
 
 ## Gotchas & learnings
 
