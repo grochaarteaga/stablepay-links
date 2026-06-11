@@ -196,13 +196,15 @@
 - [ ] Amount > balance → rejected before the widget opens
 
 ### Edge cases
-- [ ] **Concurrent execute for the same `partner_order_id` → double-debit.** The idempotency SELECT+INSERT is non-atomic; the unique partial index (migration 005) throws 23505 but only AFTER the first debit. Fix path: `INSERT ... ON CONFLICT DO NOTHING`, or check the constraint before any ledger write. [CRITICAL]
-- [ ] **`amount` from postMessage (`orderData.cryptoAmount`) is not re-validated server-side** against the session amount stored at create-widget-url → a crafted/intercepted message can pass a higher amount to execute. [HIGH — must fix]
-- [ ] postMessage origin validated against `TRANSAK_ORIGIN` — reject a crafted `ORDER_CREATED` from a malicious origin
+- [x] **Concurrent execute for the same `partner_order_id`** — defended: unique partial index on `partner_order_id` (migration 005) + atomic claim `UPDATE … WHERE id=? AND status='session_created'` (loser updates 0 rows → 409, no debit, no send); overdraft backstopped by the balances non-negative CHECK (migration 004, `23514`). Regression-tested.
+- [x] **Executed amount is bound to the widget session** — `create-widget-url` records a `session_created` withdrawal carrying the amount; `execute` takes the amount from that row, never the postMessage body (a mismatched body amount → 400). Fixed 2026-06-11, regression-tested. *(was [HIGH])*
+- [ ] postMessage origin validated against `TRANSAK_ORIGIN` — reject a crafted `ORDER_CREATED` from a malicious origin (UI-side, still manual)
+- [ ] `deposit_address` is still body-supplied (Transak assigns it post-order, so it can't be bound at create-time) — validated as an address; residual risk accepted (merchant's own funds). [SHOULD-FIX later]
 - [ ] Double reversal between the execute catch path and an `ORDER_FAILED` webhook → guarded by idempotency_key `withdrawal:<id>:reversal` (both paths MUST use the same key — do not change)
+- [ ] Orphan `session_created` rows accumulate (widget opened, SELL abandoned) — financially/visually inert; needs a 24h sweep. [SHOULD-FIX, devops]
 
 ### Automated coverage
-- None yet — all manual. **HIGH-RISK GAP — top target for automated regression tests (part 3).**
+- `src/__tests__/transak-execute.test.ts` — **16 cases**: auth, validation, session-amount binding (mismatch rejected · omitted/non-numeric falls back to session · negative rejected), idempotency + atomic-claim race (409, no debit/send), insufficient balance + `23514` CHECK, happy-path debit/send/processing, send-failure reversal.
 
 ---
 

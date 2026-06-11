@@ -132,6 +132,21 @@ export async function POST(req: Request) {
       );
     }
 
+    // Bind this widget session to a server-side withdrawal record so /execute
+    // can take the amount from HERE, not from the (tamperable) postMessage body.
+    const { error: sessionError } = await supabaseAdmin.from("withdrawals").insert({
+      user_id: user.id,
+      amount: parsedAmount,
+      status: "session_created",
+      type: "fiat",
+      partner_order_id: partnerOrderId,
+    });
+
+    if (sessionError) {
+      console.error("Failed to record off-ramp session:", sessionError.message);
+      return NextResponse.json({ error: "Failed to create off-ramp session." }, { status: 500 });
+    }
+
     return NextResponse.json({ widgetUrl, partnerOrderId });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : String(err);

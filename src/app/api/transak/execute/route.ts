@@ -51,27 +51,39 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "partner_order_id is required." }, { status: 400 });
   }
 
-  const parsedAmount = parseFloat(String(amount));
-  // M1 — enforce server-side minimum matching the UI constraint
-  if (isNaN(parsedAmount) || parsedAmount < 10) {
-    return NextResponse.json({ error: "Minimum withdrawal amount is $10." }, { status: 400 });
-  }
-  if (parsedAmount > 100_000) {
-    return NextResponse.json({ error: "Amount exceeds maximum withdrawal limit." }, { status: 400 });
-  }
-
-  // Guard against duplicate executions for the same Transak order
-  const { data: existing } = await supabaseAdmin
+  // Look up the server-side session created by create-widget-url. The amount is
+  // taken from THIS record, never from the request body — a tampered postMessage
+  // cannot execute a different amount than the widget session was created for.
+  const { data: session } = await supabaseAdmin
     .from("withdrawals")
-    .select("id, status")
+    .select("id, user_id, amount, status")
     .eq("partner_order_id", partner_order_id)
     .maybeSingle();
 
-  if (existing) {
+  if (!session) {
+    return NextResponse.json({ error: "Unknown or expired off-ramp session." }, { status: 400 });
+  }
+  if (session.user_id !== user.id) {
+    return NextResponse.json({ error: "Forbidden." }, { status: 403 });
+  }
+  if (session.status !== "session_created") {
     return NextResponse.json(
-      { error: "Order already being processed.", withdrawal_id: existing.id },
+      { error: "Order already being processed.", withdrawal_id: session.id },
       { status: 409 }
     );
+  }
+
+  // Authoritative amount = the bound session amount, NOT the request body.
+  const sessionAmount = Number(session.amount);
+  const bodyAmount = parseFloat(String(amount));
+  if (!isNaN(bodyAmount) && Math.round(bodyAmount * 1_000_000) !== Math.round(sessionAmount * 1_000_000)) {
+    return NextResponse.json({ error: "Amount does not match the off-ramp session." }, { status: 400 });
+  }
+  if (isNaN(sessionAmount) || sessionAmount < 10) {
+    return NextResponse.json({ error: "Minimum withdrawal amount is $10." }, { status: 400 });
+  }
+  if (sessionAmount > 100_000) {
+    return NextResponse.json({ error: "Amount exceeds maximum withdrawal limit." }, { status: 400 });
   }
 
   // Read current balance
@@ -83,7 +95,7 @@ export async function POST(req: Request) {
 
   const currentBalance = Number(balanceRow?.amount ?? 0);
   const balanceRounded = Math.round(currentBalance * 1_000_000) / 1_000_000;
-  const amountRounded = Math.round(parsedAmount * 1_000_000) / 1_000_000;
+  const amountRounded = Math.round(sessionAmount * 1_000_000) / 1_000_000;
 
   if (amountRounded > balanceRounded) {
     return NextResponse.json({ error: "Insufficient balance." }, { status: 400 });
@@ -103,22 +115,21 @@ export async function POST(req: Request) {
     );
   }
 
-  // 1. Create withdrawal record (type: fiat — off-ramp via Transak)
-  const { data: withdrawal, error: withdrawalInsertError } = await supabaseAdmin
+  // 1. Atomically claim the session: session_created -> pending. The status guard
+  // makes a concurrent double-execute a no-op for the loser (0 rows updated → 409).
+  const { data: withdrawal, error: claimError } = await supabaseAdmin
     .from("withdrawals")
-    .insert({
-      user_id: user.id,
-      amount: parsedAmount,
-      status: "pending",
-      type: "fiat",
-      partner_order_id,
-    })
+    .update({ status: "pending", updated_at: new Date().toISOString() })
+    .eq("id", session.id)
+    .eq("status", "session_created")
     .select()
     .single();
 
-  if (withdrawalInsertError || !withdrawal) {
-    console.error("Failed to create withdrawal record:", withdrawalInsertError?.message);
-    return NextResponse.json({ error: "Failed to initiate withdrawal." }, { status: 500 });
+  if (claimError || !withdrawal) {
+    return NextResponse.json(
+      { error: "Order already being processed.", withdrawal_id: session.id },
+      { status: 409 }
+    );
   }
 
   const ledgerTxId = crypto.randomUUID();
@@ -132,7 +143,7 @@ export async function POST(req: Request) {
   const { error: debitError } = await supabaseAdmin.from("ledger_entries").insert({
     merchant_id: user.id,
     type: "debit",
-    amount: parsedAmount,
+    amount: sessionAmount,
     description: `Fiat off-ramp via Transak (${shortDest})`,
     idempotency_key: `withdrawal:${withdrawal.id}:debit`,
     ledger_transaction_id: ledgerTxId,
@@ -166,7 +177,7 @@ export async function POST(req: Request) {
 
     // 4. Send USDC from merchant's Privy wallet to Transak's deposit address
     const privy = getPrivyClient();
-    const amountUnits = amountToUsdcUnits(parsedAmount);
+    const amountUnits = amountToUsdcUnits(sessionAmount);
 
     const calldata = encodeFunctionData({
       abi: USDC_TRANSFER_ABI,
@@ -209,7 +220,7 @@ export async function POST(req: Request) {
     const { error: reversalError } = await supabaseAdmin.from("ledger_entries").insert({
       merchant_id: user.id,
       type: "credit",
-      amount: parsedAmount,
+      amount: sessionAmount,
       description: "Reversal: Transak USDC send failed — funds returned to balance",
       idempotency_key: `withdrawal:${withdrawal.id}:reversal`,
       ledger_transaction_id: ledgerTxId,
