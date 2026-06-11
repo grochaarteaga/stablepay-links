@@ -113,6 +113,14 @@ _(Append-only. Format: `### YYYY-MM-DD — short title` then 1–3 bullets.)_
 - `env.d.ts` still declares `GAS_FUNDER_PRIVATE_KEY: string` and `WALLET_ENCRYPTION_SECRET: string`; neither is used in any src file anymore — stale declarations should be removed.
 - Promoted double-submit on withdrawal confirm to Known failure modes.
 
+### 2026-06-11 — Bridge/topups removal pre-commit verification (GO)
+- Bridge vendor dropped (KYB rejected). Verified removal of bridge.ts, TopUpModal, /api/topups (3 routes), /api/webhooks/bridge, webhook-bridge.test, plus dashboard edits and BRIDGE_* env vars.
+- npm test 28/28; tsc clean after rm -rf .next; full `npm run build` exit 0 (no topups/bridge routes in manifest). grep src/ for bridge|topup: zero matches. No path imports of deleted modules. Alchemy + Transak webhooks independent of Bridge — confirmed.
+- Dashboard Promise.all destructuring verified positionally aligned (3 queries: invoices, ledger_entries, balances). No orphan state/imports/types.
+- Dead tables `topups`/`topup_events` left in DB intentionally — inert (RLS on, merchant-scoped, no code touches them). Safe to leave; dropping is a separate prod decision.
+- Only stale residue is in docs (README, CLAUDE.md stack table, product-marketing-context) — NICE-TO-HAVE, non-blocking. Regression heuristic: after a vendor removal, always grep the WHOLE repo (not just src/) and check README/marketing context for stale vendor docs.
+- Note: same diff also flipped all 9 agent `model:` fields (qa→opus) — unrelated to removal; flagged to founder for intent.
+
 ### 2026-05-20 — QA tooling overhaul
 - Root cause identified: QA agent was never invoked before shipping. No enforcement mechanism existed.
 - Implemented 7 QA improvements:

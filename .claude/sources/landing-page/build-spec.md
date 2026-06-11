@@ -194,8 +194,8 @@ you move on):
 ### 3. `LogoStrip.tsx`
 
 - Small uppercase `slate-500` label: "Built on enterprise-grade rails"
-- Grayscale partner wordmarks, evenly spaced, centered: Bridge, Coinbase,
-  Base, Circle, Privy.
+- Grayscale partner wordmarks, evenly spaced, centered: Coinbase, Base,
+  Circle, Privy.
 - For v1, render the names as styled text (no logos yet). Use
   `text-slate-500 font-medium tracking-wide` and a flexbox with `gap-12`.
 - Section: `border-b border-slate-800`, `py-12`.
@@ -286,7 +286,7 @@ you move on):
   body.
 - Cards:
   - Regulated partners — Settlement orchestrated through licensed providers
-    including Bridge and Circle.
+    including Circle and Transak.
   - KYC & KYB verified — Every agent and payer verified before transacting.
   - 1:1 USD-backed — Funds settle in fully-reserved, regulated stablecoins.
   - Real-time audit trail — Every payment timestamped, receipted, and
@@ -334,7 +334,7 @@ you move on):
      sending their first invoice within a day. KYB verification takes minutes
      to hours.
   6. **Who holds the funds during settlement?** — Regulated partners including
-     Bridge and Circle. PortPagos never custodies user funds.
+     Circle and Transak. PortPagos never custodies user funds.
   7. **Do ship owners need an account?** — No. Ship owners can pay via a
      hosted link without creating an account. Onboarding takes under a minute
      for repeat payers.

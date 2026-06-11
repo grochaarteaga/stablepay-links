@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { supabase } from "@/lib/supabaseClient";
 import Link from "next/link";
 import { WithdrawModal } from "@/components/WithdrawModal";
-import { TopUpModal } from "@/components/TopUpModal";
 
 type Invoice = {
   id: string;
@@ -24,16 +23,6 @@ type LedgerEntry = {
   created_at: string;
   invoice_id: string | null;
   description: string | null;
-};
-
-type Topup = {
-  id: string;
-  reference: string;
-  status: string;
-  eur_amount_expected: number | null;
-  usdc_amount: number | null;
-  tx_hash: string | null;
-  created_at: string;
 };
 
 function StatusBadge({ status }: { status: string }) {
@@ -81,9 +70,6 @@ export default function DashboardPage() {
   const [isNewUser, setIsNewUser] = useState(false);
   const [companyName, setCompanyName] = useState<string | null>(null);
   const [showWithdrawModal, setShowWithdrawModal] = useState(false);
-  const [showTopUpModal, setShowTopUpModal] = useState(false);
-  const [walletAddress, setWalletAddress] = useState<string>("");
-  const [topups, setTopups] = useState<Topup[]>([]);
   const [siteOrigin, setSiteOrigin] = useState("");
 
   async function loadDashboard() {
@@ -134,19 +120,12 @@ export default function DashboardPage() {
     const [
       { data: invoiceData, error: invoiceError },
       { data: ledgerData, error: ledgerError },
-      { data: profileData },
-      { data: topupData },
       { data: balanceData },
     ] = await Promise.all([
       supabase.from("invoices").select("*").order("created_at", { ascending: false }),
       supabase.from("ledger_entries").select("*").eq("merchant_id", user.id).order("created_at", { ascending: false }),
-      supabase.from("merchant_profiles").select("wallet_address").eq("user_id", user.id).maybeSingle(),
-      supabase.from("topups").select("id, reference, status, eur_amount_expected, usdc_amount, tx_hash, created_at").eq("merchant_id", user.id).order("created_at", { ascending: false }),
       supabase.from("balances").select("amount").eq("merchant_id", user.id).maybeSingle(),
     ]);
-
-    if (profileData?.wallet_address) setWalletAddress(profileData.wallet_address);
-    setTopups((topupData as Topup[]) ?? []);
 
     // Balance comes from the materialised balances table (O(1), trigger-maintained).
     // ledger_entries are still fetched for the history display and analytics.
@@ -300,14 +279,6 @@ export default function DashboardPage() {
             className="px-5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-medium hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             Withdraw
-          </button>
-          <button
-            disabled
-            title="EUR top-up coming soon"
-            className="px-5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 text-sm font-medium opacity-50 cursor-not-allowed flex items-center gap-2"
-          >
-            Top up
-            <span className="text-xs bg-slate-700 px-1.5 py-0.5 rounded text-slate-400">Soon</span>
           </button>
         </section>
 
@@ -562,76 +533,6 @@ export default function DashboardPage() {
           )}
         </section>
 
-        {/* ── Top-up History ───────────────────────────────────────── */}
-        {topups.length > 0 && (
-          <section className="bg-slate-900 border border-slate-800 rounded-xl p-5">
-            <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-5">Top-up History</h2>
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="text-xs text-slate-500 border-b border-slate-800">
-                  <tr>
-                    <th className="text-left py-2 pb-3 font-medium">Date</th>
-                    <th className="text-left py-2 pb-3 font-medium">Reference</th>
-                    <th className="text-left py-2 pb-3 font-medium">EUR sent</th>
-                    <th className="text-left py-2 pb-3 font-medium">USDC received</th>
-                    <th className="text-left py-2 pb-3 font-medium">Status</th>
-                    <th className="text-left py-2 pb-3 font-medium">Tx</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {topups.map((t) => {
-                    const topupStatusStyles: Record<string, string> = {
-                      awaiting_deposit: "bg-yellow-900/50 text-yellow-400",
-                      deposit_received: "bg-blue-900/50 text-blue-400",
-                      converting: "bg-blue-900/50 text-blue-400",
-                      converted: "bg-blue-900/50 text-blue-400",
-                      completed: "bg-green-900/50 text-green-400",
-                      failed: "bg-red-900/50 text-red-400",
-                      expired: "bg-red-900/50 text-red-400",
-                    };
-                    return (
-                      <tr key={t.id} className="border-b border-slate-800/60 last:border-none hover:bg-slate-800/30 transition-colors">
-                        <td className="py-3 text-slate-500 text-xs">
-                          {new Date(t.created_at).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}
-                        </td>
-                        <td className="py-3">
-                          <span className="font-mono text-xs text-slate-300">{t.reference}</span>
-                        </td>
-                        <td className="py-3 text-slate-300">
-                          {t.eur_amount_expected != null ? `€${Number(t.eur_amount_expected).toFixed(2)}` : <span className="text-slate-600">—</span>}
-                        </td>
-                        <td className="py-3">
-                          {t.usdc_amount != null
-                            ? <span className="text-green-400 font-medium">+{Number(t.usdc_amount).toFixed(2)} USDC</span>
-                            : <span className="text-slate-600">—</span>}
-                        </td>
-                        <td className="py-3">
-                          <span className={`text-xs font-medium px-2 py-0.5 rounded capitalize ${topupStatusStyles[t.status] ?? "bg-slate-700 text-slate-400"}`}>
-                            {t.status.replace(/_/g, " ")}
-                          </span>
-                        </td>
-                        <td className="py-3">
-                          {t.tx_hash ? (
-                            <div className="flex items-center gap-0.5">
-                              <span className="font-mono text-xs text-slate-500">{t.tx_hash.slice(0, 10)}...</span>
-                              <CopyButton text={t.tx_hash} />
-                              <a href={`https://basescan.org/tx/${t.tx_hash}`} target="_blank"
-                                rel="noopener noreferrer" title="View transaction"
-                                className="text-blue-400 hover:text-blue-300 text-xs ml-0.5 transition-colors">↗</a>
-                            </div>
-                          ) : (
-                            <span className="text-slate-600 text-xs">—</span>
-                          )}
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            </div>
-          </section>
-        )}
-
         {/* ── Account & Settings ───────────────────────────────────── */}
         <section className="bg-slate-900 border border-slate-800 rounded-xl p-5">
           <h2 className="text-sm font-semibold uppercase tracking-widest text-slate-400 mb-5">Account & Settings</h2>
@@ -663,18 +564,6 @@ export default function DashboardPage() {
           onClose={() => setShowWithdrawModal(false)}
           onSuccess={() => {
             setShowWithdrawModal(false);
-            loadDashboard();
-          }}
-        />
-      )}
-
-      {/* ── Top-up Modal ─────────────────────────────────────────── */}
-      {showTopUpModal && (
-        <TopUpModal
-          walletAddress={walletAddress}
-          onClose={() => setShowTopUpModal(false)}
-          onSuccess={() => {
-            setShowTopUpModal(false);
             loadDashboard();
           }}
         />

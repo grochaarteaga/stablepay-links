@@ -62,7 +62,7 @@
 - Get paid in minutes, not weeks
 - No SWIFT delays, no correspondent fees
 - No manual reconciliation — matched automatically
-- Your customers pay with one tap, no wallet required **[COMING SOON — Bridge payer-fiat-pay not yet live]**
+- Your customers pay with one tap, no wallet required **[COMING SOON — payer fiat-pay via Transak, pending KYB approval]**
 
 **CFO / finance-facing:**
 - Working capital unlocked — cash conversion cycle from days to minutes
@@ -80,7 +80,7 @@
 
 **Adjacent players:**
 - **Airwallex, Wise Business** — global payments platforms, not shipping-specialized, slower than our claim, no per-invoice flow
-- **Bridge (the API we use\!)** — not a competitor; integration partner
+- **Transak (the fiat on/off-ramp we use)** — not a competitor; integration partner
 - **Traditional correspondent bank networks** — the pain we're unwinding
 
 **Crypto-native (not direct but adjacent):** Ramp, Circle Mint, Request Finance. Not positioned for maritime; their audience is web3-first.

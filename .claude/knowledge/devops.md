@@ -92,7 +92,11 @@ _(Shipper should diff `.env.example` on each task and update this list.)_
 
 _(Append-only. Format: date, blast radius, resolution, follow-ups.)_
 
-_(No incidents logged yet.)_
+### 2026-05-19 — Auth shipped without QA; 7 P0/P1 bugs found post-ship
+- **Blast radius:** Production auth broken/exposed — missing `/reset-password` page, no edge middleware (every protected route unguarded), broken SMTP, and an onboarding bypass that left users with no wallet. All found *after* shipping.
+- **Root cause:** QA agent was never invoked before shipping; no enforcement mechanism existed.
+- **Resolution:** All P0/P1 fixed (commits `daa11c2`, `b165541`, `52e6b95`…`31c90c7`). Then institutionalized: `scripts/pre-commit-gate.sh` hook, automated reset/login tests, Playwright E2E, and QA made mandatory in house rules + ship runbook.
+- **Follow-ups:** QA-before-ship now enforced. Still open: confirm middleware coverage on all `(app)` routes; verify Alchemy webhook reliability (separate known failure mode).
 
 ## Log
 

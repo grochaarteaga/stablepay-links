@@ -32,7 +32,7 @@ Shared vocabulary for the agent team. Keep this tight — one line per term, wit
 - **Nostro / Vostro** — Bank accounts held abroad. Cross-border settlement infrastructure.
 - **KYC / KYB** — Know-Your-Customer / Know-Your-Business. Onboarding compliance.
 - **Sanctions screening** — Required check against OFAC/EU sanctions lists.
-- **Off-ramp / On-ramp** — Converting between stablecoin and fiat. PortPagos uses Bridge.
+- **Off-ramp / On-ramp** — Converting between stablecoin and fiat. PortPagos uses Transak.
 - **Settlement time** — From payment initiation to funds usable. PortPagos target: < 2 min.
 - **Chargeback** — Reversed card payment. Doesn't apply to USDC (final on-chain) — a selling point.
 - **ACH / Wire** — US domestic payment rails. Faster than SWIFT but still not instant.
